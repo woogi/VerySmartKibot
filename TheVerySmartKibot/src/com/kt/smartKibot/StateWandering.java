@@ -6,12 +6,17 @@ import android.widget.Toast;
 public class StateWandering implements IRobotState {
 	
 	private static final String TAG="StateWandering";
+	private boolean _DEBUG=true;
 	
 	@Override
 	public void onStart(Context ctx) {
 		// TODO Auto-generated method stub
-		RobotFace.getInstance(ctx).change(RobotFace.EMO_MODE_FUN);
-		Toast.makeText(ctx, TAG,Toast.LENGTH_LONG).show();
+		if(_DEBUG){
+			RobotFace.getInstance(ctx).change(RobotFace.MODE_FUN,TAG);
+		}
+		else{
+			RobotFace.getInstance(ctx).change(RobotFace.MODE_FUN);
+		}
 		
 		
 	}	@Override

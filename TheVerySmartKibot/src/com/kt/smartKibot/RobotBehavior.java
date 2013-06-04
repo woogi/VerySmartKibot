@@ -53,7 +53,7 @@ public abstract class RobotBehavior implements IRobotEvtHandler{
 		}
 	}
 	
-	protected IRobotState getCurrentState()
+	public IRobotState getCurrentState()
 	{
 		if(history_state.size()<1){
 			return null;

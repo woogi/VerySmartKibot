@@ -5,17 +5,22 @@ import android.widget.Toast;
 
 public class StateCharging implements IRobotState {
 
-	volatile boolean isEnd=false;
+	private volatile boolean isEnd=false;
 	
 	static final String TAG="StateCharging";
+	private boolean _DEBUG=true;
 	
 	@Override
 	public void onStart(Context ctx) {
 		// TODO Auto-generated method stub
-		RobotFace.getInstance(ctx).change(RobotFace.EMO_MODE_EATTING);
 		isEnd=false;
+		if(_DEBUG){
+			RobotFace.getInstance(ctx).change(RobotFace.MODE_EATTING,TAG);
+		}
+		else{
+			RobotFace.getInstance(ctx).change(RobotFace.MODE_EATTING);
+		}
 		
-		Toast.makeText(ctx, TAG,Toast.LENGTH_LONG).show();
 	}
 
 	@Override

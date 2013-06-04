@@ -1,10 +1,15 @@
 package com.kt.smartKibot;
 
+import android.text.format.Time;
+
 public class RobotEvent {
 	private int type=EVT_UNKNOWN;
 	private int param1=PARAM_UNKNOWN;
 	private int param2=PARAM_UNKNOWN;
 	private String extParam=null;
+	private Time timeStamp=null;
+	
+	
 	
 	
 	//even type definition
@@ -27,6 +32,8 @@ public class RobotEvent {
 		this.param1 = param1;
 		this.param2 = param2;
 		this.extParam = extParam;
+		this.timeStamp=new Time();
+		this.timeStamp.setToNow();
 	}
 	
 	
@@ -36,6 +43,8 @@ public class RobotEvent {
 		this.param1 = PARAM_UNKNOWN;
 		this.param2 = PARAM_UNKNOWN;
 		this.extParam = null;
+		this.timeStamp=new Time();
+		this.timeStamp.setToNow();
 	}
 
 
@@ -94,6 +103,17 @@ public class RobotEvent {
 	 */
 	public void setExtParam(String extParam) {
 		this.extParam = extParam;
+	}
+
+
+
+	public Time getTimeStamp() {
+		return timeStamp;
+	}
+
+
+	public void setTimeStamp(Time timeStamp) {
+		this.timeStamp = timeStamp;
 	}
 	
 }

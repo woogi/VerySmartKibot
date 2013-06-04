@@ -2,10 +2,7 @@ package com.kt.smartKibot;
 
 import java.io.File;
 
-import com.kt.face.ScreenSaverOpenGLSurface;
-
 import android.app.Activity;
-import android.content.ContentResolver;
 import android.content.Intent;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech.OnUtteranceCompletedListener;
@@ -16,31 +13,30 @@ import android.view.View;
 import android.view.View.OnTouchListener;
 import android.view.WindowManager;
 import android.widget.LinearLayout;
+import android.widget.Toast;
+
+import com.kt.face.ScreenSaverOpenGLSurface;
 
 
 public class FaceActivity extends Activity implements OnUtteranceCompletedListener{
 
-	static final String TAG="Face Activity";
-	AlarmAgent agent;
-	RobotBrain brain;
-	ScreenSaverOpenGLSurface mSurface = null;
-	LinearLayout mlayout;
-	private int curEmoId=-1;
-	private ContentResolver mContentResolver;
-	boolean DEBUG=true;
-	boolean isOpenGLOn=false;
+	private static final String TAG="Face Activity";
+	private RobotBrain brain;
+	private ScreenSaverOpenGLSurface mSurface = null;
+	private boolean DEBUG=true;
+	private int currentFaceMode=RobotFace.MODE_UNKNOWN;
 	
-	private String[] mNames = { "EMO_MODE_FUN", "EMO_MODE_ATTENTION",
-			"EMO_MODE_EATTING", "EMO_MODE_LOVE", "EMO_MODE_SAD",
-			"EMO_MODE_EXCITED", "EMO_MODE_BRUSH", "EMO_MODE_YAWN",
-			"EMO_MODE_FUN", "EMO_MODE_PLEASED", "EMO_MODE_WASHING",
-			"EMO_MODE_SLEEP", "EMO_MODE_SERIOUS", "EMO_MODE_READING",
-			"EMO_MODE_ANGRY", "EMO_MODE_WINK_LEFT", "EMO_MODE_WINK_RIGHT" };
+	
 
-	private String[] mFacePaths2 = { "/face15", "/face16", "/face14", "/face03",
+	private static final String baseFacePath = "/system/media/robot/face/";
+	private static final String[] facePaths = { "/face15", "/face16", "/face14", "/face03",
 			"/face13", "/face15", "/face08", "/face02", "/face01", "/face04",
 			"/face09", "/face11", "/face12", "/face10", "/face05", "/face06",
 			"/face07" };
+	
+	public static final String ACTION_CHANGE="com.kt.kibot.ChangeFace";
+	public static final String ACTION_FINISH="com.kt.kibot.FinishFace";
+	
 	
 	@Override
 	public void onUtteranceCompleted(String utteranceId) {
@@ -80,44 +76,14 @@ public class FaceActivity extends Activity implements OnUtteranceCompletedListen
 		//launcher 화면 에서  최초실행 
 		if(true==it.getAction().equals("android.intent.action.MAIN"))
 		{
-			
 		
-			Log.d(TAG,"action --- action.Main");
+			Log.d(TAG,"start with action.Main");
 			
-			
-			/* alarm 등록
-			agent=new AlarmAgent();
-			agent.init(getApplicationContext());
-		
-			*/
+			//write asset data on file system.
+			new UtilAssets(getApplicationContext()).toFileSystem("rmm");
 			
 			brain=new RobotBrain(getApplicationContext());
 	
-			
-			//alarm 등록
-			//agent.regSchedule(brain);
-			
-			mContentResolver = getContentResolver();
-			
-		// set main activity context
-			/*
-			RobotSpeach.getSingleton(this);
-			RobotMotion.getSingleton(this);
-			RobotFace.getSingleton(this);
-			*/
-			
-			/*
-			initFaceAniView();
-			
-		
-			if (!startFaceAnimation(getIntent())) {
-				closeFaceAniView();
-			}
-			*/
-			
-			
-			//finish();
-			
 		}
 
 		
@@ -131,35 +97,27 @@ public class FaceActivity extends Activity implements OnUtteranceCompletedListen
 		return true;
 	}
 	
-	private void initFaceAniView() {
-		mlayout = (LinearLayout) findViewById(R.id.layout);
-		curEmoId=-1;
-	}
 	
 	private boolean startFaceAnimation(Intent intent) {
-		int tmp = intent.getIntExtra("_id", 0);
+	
+				int oldMode=currentFaceMode;
+		int newMode=intent.getIntExtra("_id", 0);
+		String message=intent.getStringExtra("_toast_message");
 		
-		Log.d(TAG, "  curEmoId:"+curEmoId+"  target:"+tmp);
-		/*
-		if (curEmoId == tmp) {
-			return false;
-		}
-		*/
+		if(DEBUG)
+			Log.d(TAG,"try to change face from old id:"+oldMode+" to new id:"+newMode);
 		
-		curEmoId = tmp;
-
-		// Base Path
-		String sBasePath = "/system/media/robot/face/";
-
+		if(message!=null)
+			Toast.makeText(this,message,Toast.LENGTH_LONG).show();
+		
 		
 		// OpenGL에필요한파일들이있는경로
-		String sModelPath = new StringBuilder(sBasePath).append("1").toString();
+		String sModelPath = new StringBuilder(baseFacePath).append("1").toString();
 		/* todo getString 제대로 동작안함 다시 확인이 필요함
 		// .append(2) // 검수버전
-				.append(Settings.Etc.getString(mContentResolver, "kibotcolor"))// 정식
-																				// 버전
-				.toString();
-				*/
+			.append(Settings.Etc.getString(mContentResolver, "kibotcolor"))// 정식
+			.toString();
+		*/
 
 		// 흰색 Default이미지
 		String sDefaultPageFileName = new StringBuilder(sModelPath).append(
@@ -180,8 +138,9 @@ public class FaceActivity extends Activity implements OnUtteranceCompletedListen
 
 		String[] sAniFolder = new String[3];
 
+		currentFaceMode=newMode;
 		sAniFolder[0] = new StringBuilder(sModelPath).append(
-				mFacePaths2[curEmoId]).toString();
+				facePaths[currentFaceMode]).toString();
 
 		if (DEBUG)
 			Log.i(TAG, sAniFolder[0]);
@@ -193,9 +152,9 @@ public class FaceActivity extends Activity implements OnUtteranceCompletedListen
 
 			mSurface = new ScreenSaverOpenGLSurface(this, sModelPath,
 					sDefaultPageFileName, sAniFolder, nInterval, nLastInterver);
-//todo change view
-			mlayout.addView(mSurface);
-			//setContentView(mSurface);
+
+			LinearLayout layout = (LinearLayout) findViewById(R.id.layout);
+			layout.addView(mSurface);
 
 			mSurface.setOnTouchListener(new OnTouchListener() {
 				@Override
@@ -207,14 +166,15 @@ public class FaceActivity extends Activity implements OnUtteranceCompletedListen
 				}
 			});
 
-			isOpenGLOn = true;
 			mSurface.Start();
+			
 			if (DEBUG)
 				Log.i(TAG, "mSurface start");
 
-		} else {
+		}
+		else 
+		{
 
-			isOpenGLOn = true;
 			// 이미객체가생성되어있는경우폴더만지정한다.
 			mSurface.Start(sDefaultPageFileName, sAniFolder);
 
@@ -230,7 +190,6 @@ public class FaceActivity extends Activity implements OnUtteranceCompletedListen
 			if(mSurface != null){
 			mSurface.Stop();
 			mSurface.Destory();
-			curEmoId=-1;
 			mSurface=null;
 			}
 		} catch (Exception e) {
@@ -238,13 +197,16 @@ public class FaceActivity extends Activity implements OnUtteranceCompletedListen
 				Log.e(TAG, e.getMessage(), e);
 		}
 	}
+	
+	
 	private void closeFaceAniView() {
-		mlayout = (LinearLayout) findViewById(R.id.layout);
-		mlayout.setVisibility(View.INVISIBLE);
+		LinearLayout layout= (LinearLayout) findViewById(R.id.layout);
+		layout.setVisibility(View.INVISIBLE);
 		LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(1, 1);
-		mlayout.setLayoutParams(params);
-		curEmoId=-1;
+		layout.setLayoutParams(params);
 	}
+	
+	
 	/* (non-Javadoc)
 	 * @see android.app.Activity#onDestroy()
 	 */
@@ -289,16 +251,15 @@ public class FaceActivity extends Activity implements OnUtteranceCompletedListen
 		RobotMotion.getInstance(this);
 		RobotFace.getInstance(this);
 		
-		if(true==it.getAction().equals("com.kt.kibot.ChangeFace")){
+		if(true==it.getAction().equals(ACTION_CHANGE)){
 			Log.d(TAG,"action -- kibot.ChangeFace");
-						initFaceAniView();
-			if (!startFaceAnimation(getIntent())) {
+						if (!startFaceAnimation(getIntent())) {
 				closeFaceAniView();
 			}
 		}
 	
 		
-		if(true==it.getAction().equals("com.kt.kibot.FinishFace")){
+		if(true==it.getAction().equals(ACTION_FINISH)){
 			Log.d(TAG,"action -- kibot.finishFace");
 			
 			finish();

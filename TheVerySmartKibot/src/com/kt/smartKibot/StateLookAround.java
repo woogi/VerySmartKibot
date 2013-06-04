@@ -7,12 +7,20 @@ public class StateLookAround implements IRobotState {
 
 	
 	private static final String TAG="StateLookAround";
+	private boolean _DEBUG=true;
 	
 	@Override
 	public void onStart(Context ctx) {
 		// TODO Auto-generated method stub
-		RobotFace.getInstance(ctx).change(RobotFace.EMO_MODE_ATTENTION);
-		Toast.makeText(ctx, TAG,Toast.LENGTH_LONG).show();
+		if(_DEBUG)
+		{
+			
+			RobotFace.getInstance(ctx).change(RobotFace.MODE_ATTENTION,TAG);
+		}
+		else{
+			RobotFace.getInstance(ctx).change(RobotFace.MODE_ATTENTION);
+		}
+		
 	}
 
 	@Override

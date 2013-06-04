@@ -14,9 +14,11 @@ public class RobotBrain implements IRobotEvtHandler{
 	private Context ctx;
 	private ArrayList<RobotBehavior> history_behavior;
 	private ArrayList<RobotEvent> history_evt;
+	private ArrayList<RobotLog> history_log;
 	
 	public static final int MAX_HISTORY_BEHAVIOR=5;
 	public static final int MAX_HISTORY_EVT=10;
+	public static final int MAX_HISTORY_LOG=10;
 	
 
 	private BatteryChecker batteryChecker=null;
@@ -58,6 +60,7 @@ public class RobotBrain implements IRobotEvtHandler{
 		
 		this.history_behavior=new ArrayList<RobotBehavior>(MAX_HISTORY_BEHAVIOR);
 		this.history_evt=new ArrayList<RobotEvent>(MAX_HISTORY_EVT);
+		this.history_log=new ArrayList<RobotLog>(MAX_HISTORY_LOG);
 		
 		dayTimeBehavior=new DayTimeBehavior();
 		
@@ -82,6 +85,25 @@ public class RobotBrain implements IRobotEvtHandler{
 		
 		if(history_evt.size()==MAX_HISTORY_EVT) history_evt.remove(0);
 		history_evt.add(evt);
+		
+		RobotLog logData=new RobotLog();
+		
+		logData.setBehavior(behavior);
+		
+		logData.setEvent(evt);
+		
+		if(behavior!=null)
+		{
+			logData.setState(behavior.getCurrentState());
+		}
+		
+		
+		if(history_log.size()==MAX_HISTORY_LOG) history_log.remove(0);
+		history_log.add(logData);
+		
+	
+	
+			
 		/*
 		switch(evt.getType())
 		{

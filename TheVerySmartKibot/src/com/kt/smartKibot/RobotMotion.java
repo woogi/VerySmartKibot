@@ -21,9 +21,9 @@ public class RobotMotion {
 	volatile boolean isFreeMove=false;
 	
 	private static final String DEFAULT_RMM_ALIAS="curRmm00";
+	private UtilAssets utilAssets=null;
 	
 	private int curWheelState = STOPPED;
-	;
 	// 현재 바퀴 상태 정의
 	private static final int MOVE_FOWARD = 11;
 	private static final int MOVE_BACK = 12;
@@ -74,6 +74,8 @@ public class RobotMotion {
 		
 		_robotManager.registerListener(instanceId, mAsyncListener);
 		_robotManager.setEmrEnable(false);
+		
+		utilAssets=new UtilAssets(ctx);
 		
 	}
 	
@@ -283,7 +285,8 @@ public class RobotMotion {
 
 	public void playRMM(String fileName)
 	{
-		_robotManager.loadRmm(fileName, DEFAULT_RMM_ALIAS, new IRobotIntResultListener.Stub()
+		
+		_robotManager.loadRmm(utilAssets.getFilePathOnFilSystem(fileName), DEFAULT_RMM_ALIAS, new IRobotIntResultListener.Stub()
 		{
 
 			public void onResult(int arg0, int arg1) throws RemoteException

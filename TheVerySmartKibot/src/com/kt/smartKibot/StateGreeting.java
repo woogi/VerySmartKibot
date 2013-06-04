@@ -5,16 +5,22 @@ import android.widget.Toast;
 
 public class StateGreeting implements IRobotState {
 
-
+	private boolean _DEBUG=true;
 	private static final String TAG="StateGreeting";
 	
 	@Override
 	public void onStart(Context ctx) {
 		// TODO Auto-generated method stub
-
-		RobotFace.getInstance(ctx).change(RobotFace.EMO_MODE_EXCITED);
+	if(_DEBUG)
+	{
 		
-		Toast.makeText(ctx.getApplicationContext(), TAG,Toast.LENGTH_LONG).show();
+			RobotFace.getInstance(ctx).change(RobotFace.MODE_EXCITED,TAG);
+	}
+	else{
+			RobotFace.getInstance(ctx).change(RobotFace.MODE_EXCITED);
+			
+	}
+	
 			
 	}
 
@@ -23,7 +29,7 @@ public class StateGreeting implements IRobotState {
 		// TODO Auto-generated method stub
 
 		try{
-			
+			/*
 			RobotMotion.getInstance(ctx).led(0,100,3);
 			Thread.sleep(2000);
 				
@@ -46,6 +52,10 @@ public class StateGreeting implements IRobotState {
 			RobotMotion.getInstance(ctx).goBack(1, 1);
 			
 			Thread.sleep(200);
+			*/
+			//test
+			RobotMotion.getInstance(ctx).playRMM("listen.rmm");
+			Thread.sleep(6000);
 			
 			}catch(Exception e){}
 	}

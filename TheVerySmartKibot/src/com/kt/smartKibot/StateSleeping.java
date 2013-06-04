@@ -1,19 +1,29 @@
 package com.kt.smartKibot;
 
+import java.util.Random;
+
 import android.content.Context;
 import android.widget.Toast;
 
 public class StateSleeping implements IRobotState {
 	
 	private static final String TAG="StateSleeping";
+	private volatile boolean isEnd=false;
+	private boolean _DEBUG=true;
+	
 	@Override
 	public void onStart(Context ctx) {
 		// TODO Auto-generated method stub
 
-		RobotFace.getInstance(ctx).change(RobotFace.EMO_MODE_SLEEP);
+		if(_DEBUG){
+			RobotFace.getInstance(ctx).change(RobotFace.MODE_SLEEP,TAG);
+		}
+		else{
+			RobotFace.getInstance(ctx).change(RobotFace.MODE_SLEEP);
+		}
 		
 		NoiseDetector.getInstance().start();
-		Toast.makeText(ctx, TAG,Toast.LENGTH_LONG).show();
+		isEnd=false;
 	}
 
 	@Override
@@ -22,10 +32,22 @@ public class StateSleeping implements IRobotState {
 
 		try{
 			
-			RobotSpeech.getInstance(ctx).speak("음");
+			while(!isEnd){
+				
+			int rand=(int)(Math.random()*4);
+				if(rand==0){
+		
+					RobotSpeech.getInstance(ctx).speak("쿨 쿨");
+				}
 			
+				if(rand==1){
+		
+					RobotSpeech.getInstance(ctx).speak("음");
+				}
 			
 			Thread.sleep(2000);
+			
+			}
 			
 			
 			}catch(Exception e){}
@@ -37,13 +59,13 @@ public class StateSleeping implements IRobotState {
 	public void cleanUp(Context ctx) {
 		// TODO Auto-generated method stub
 
-		RobotMotion.getInstance(ctx).offAllLed();
 	}
 
 	@Override
 	public void onChanged(Context ctx) {
 		// TODO Auto-generated method stub
 		NoiseDetector.getInstance().stop();
+		isEnd=true;
 		
 	}
 

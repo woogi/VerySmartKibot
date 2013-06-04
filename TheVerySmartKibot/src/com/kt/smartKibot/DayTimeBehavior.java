@@ -6,8 +6,6 @@ import android.util.Log;
 public class DayTimeBehavior extends RobotBehavior{
 
 	static final String TAG="DayTimeBehavior";
-	NoiseDetector noiseDetector=null;
-	protected RobotTimer robotTimer=null;
 	
 	/* (non-Javadoc)
 	 * @see com.kt.smartKibot.RobotBehavior#onStart(android.content.Context)
@@ -32,16 +30,16 @@ public class DayTimeBehavior extends RobotBehavior{
 			case RobotEvent.EVT_TIMER:
 				if(StateGreeting.class.isInstance(getCurrentState()))
 				{
-					if(evt.getParam1()==1) //elapsed 30 sec..
+					if(evt.getParam1()==1) 
 					{
-						changeState(new StateSleeping()); //test
+						changeState(new StateSleeping());
 						return;
 					}
 				}
 				
 				if(StateWandering.class.isInstance(getCurrentState()))
 				{
-					if(evt.getParam1()==6/*test*/) //elapsed 60 sec..
+					if(evt.getParam1()==1) 
 					{
 						changeState(new StateSleeping());
 						return;
@@ -50,7 +48,7 @@ public class DayTimeBehavior extends RobotBehavior{
 				
 				if(StateLookAround.class.isInstance(getCurrentState()))
 				{
-					if(evt.getParam1()==6/*test*/) //elapsed 60 sec..
+					if(evt.getParam1()==1) 
 					{
 						changeState(new StateSleeping());
 						return;
@@ -59,7 +57,7 @@ public class DayTimeBehavior extends RobotBehavior{
 				
 				if(StateSleeping.class.isInstance(getCurrentState()))
 				{
-					if(evt.getParam1()==3/*test*/) //elapsed 60 sec..
+					if(evt.getParam1()==6)
 					{
 						int rand=(int)(Math.random()*2);
 						if(rand==0){
