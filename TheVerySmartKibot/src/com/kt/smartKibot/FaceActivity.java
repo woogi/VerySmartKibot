@@ -80,7 +80,7 @@ public class FaceActivity extends Activity implements OnUtteranceCompletedListen
 			Log.d(TAG,"start with action.Main");
 			
 			//write asset data on file system.
-			new UtilAssets(getApplicationContext()).toFileSystem("rmm");
+			new UtilAssets(getApplicationContext(),"rmm").toFileSystem();
 			
 			brain=new RobotBrain(getApplicationContext());
 	
@@ -158,7 +158,7 @@ public class FaceActivity extends Activity implements OnUtteranceCompletedListen
 				@Override
 				public boolean onTouch(View v, MotionEvent event) {
 					if (event.getAction() == MotionEvent.ACTION_DOWN) {
-			//			startRecognition();
+						finish();
 					}
 					return true;
 				}

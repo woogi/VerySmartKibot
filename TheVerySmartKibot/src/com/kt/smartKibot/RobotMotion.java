@@ -20,7 +20,7 @@ public class RobotMotion {
 	private int instanceId = -1;
 	volatile boolean isFreeMove=false;
 	
-	private static final String DEFAULT_RMM_ALIAS="curRmm00";
+	private static final String DEFAULT_RMM_ALIAS="curRmm007";
 	private UtilAssets utilAssets=null;
 	
 	private int curWheelState = STOPPED;
@@ -30,6 +30,8 @@ public class RobotMotion {
 	private static final int TURN_LEFT = 13;
 	private static final int TURN_RIGHT = 14;
 	private static final int STOPPED = 15;
+	
+	private boolean emrState=false;
 	
 	// led 위치에 적용되는 색
 	private int[] _ccsidx = { 0, 0, 0, 0, 0 };
@@ -73,9 +75,9 @@ public class RobotMotion {
 		};
 		
 		_robotManager.registerListener(instanceId, mAsyncListener);
-		_robotManager.setEmrEnable(false);
+		_robotManager.setEmrEnable(emrState);
 		
-		utilAssets=new UtilAssets(ctx);
+		utilAssets=new UtilAssets(ctx,"rmm");
 		
 	}
 	
@@ -94,8 +96,9 @@ public class RobotMotion {
 				try {
 					_this._robotManager.setEmrEnable(false);
 					//stopPatten();
-					_this._robotManager.stopRmm();
-					_this._robotManager.stopWheel();
+					_this.stopRMM();
+					_this.stopFreeMove();
+					_this.stopWheel();
 					for (int i = 0; i < 6; i++) {
 						_this._robotManager.setLedColor(i, 0xFF000000);
 					}
@@ -283,27 +286,35 @@ public class RobotMotion {
 		stopWheel();
 	}
 
-	public void playRMM(String fileName)
-	{
+	public void playRMM(String fileName){
 		
-		_robotManager.loadRmm(utilAssets.getFilePathOnFilSystem(fileName), DEFAULT_RMM_ALIAS, new IRobotIntResultListener.Stub()
-		{
-
-			public void onResult(int arg0, int arg1) throws RemoteException
-			{
-			
-					if(arg0<0)
+		//String fullFilePath="/system/media/robot/rmm/A12.rmm";
+		String fullFilePath=utilAssets.getFilePathOnFilSystem(fileName);
+		
+		Log.d(TAG,"path:"+fullFilePath);
+		
+		_robotManager.loadRmm(fullFilePath, DEFAULT_RMM_ALIAS, 
+				new IRobotIntResultListener.Stub(){
+					public void onResult(int result, int opCode) throws RemoteException
 					{
-						return;
-					}
-					else
-					{
-						_robotManager.playRmm(DEFAULT_RMM_ALIAS, null);
-					}
-			}
-		});
+							if(result<0)
+							{
+								Log.d(TAG,"Loading rmm file is failed. :"+result);
+								return;
+							}
+							else
+							{
+								Log.d(TAG,"play rmm with "+DEFAULT_RMM_ALIAS);
+								_robotManager.playRmm(DEFAULT_RMM_ALIAS, null);
+							}
+					}});
 	}
-		
+	
+	public void stopRMM(){
+		_robotManager.stopRmm();
+	}
+	
+	
 		
 	public void goBack(int speed, boolean speakOn, boolean faceOn) {
 		if (curWheelState != MOVE_BACK) {
@@ -340,10 +351,16 @@ public class RobotMotion {
 		//isFreeMove = true;
 	}
 	
+	public void setEmrState(boolean state){
+		emrState=state;
+		_robotManager.setEmrEnable(state);
+		
+	}
+	
 	
 	public void stopFreeMove(){
-		
-		_robotManager.setEmrEnable(true);
+		//restore original state
+		_robotManager.setEmrEnable(emrState);
 		_robotManager.leaveFreeMove();
 		
 		//isFreeMove = false;

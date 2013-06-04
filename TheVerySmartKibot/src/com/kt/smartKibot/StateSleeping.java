@@ -34,7 +34,7 @@ public class StateSleeping implements IRobotState {
 			
 			while(!isEnd){
 				
-			int rand=(int)(Math.random()*4);
+			int rand=(int)(Math.random()*10);
 				if(rand==0){
 		
 					RobotSpeech.getInstance(ctx).speak("쿨 쿨");

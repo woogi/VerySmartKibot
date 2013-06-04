@@ -30,7 +30,7 @@ public class DayTimeBehavior extends RobotBehavior{
 			case RobotEvent.EVT_TIMER:
 				if(StateGreeting.class.isInstance(getCurrentState()))
 				{
-					if(evt.getParam1()==1) 
+					if(evt.getParam1()==3) 
 					{
 						changeState(new StateSleeping());
 						return;
@@ -39,7 +39,7 @@ public class DayTimeBehavior extends RobotBehavior{
 				
 				if(StateWandering.class.isInstance(getCurrentState()))
 				{
-					if(evt.getParam1()==1) 
+					if(evt.getParam1()==3) 
 					{
 						changeState(new StateSleeping());
 						return;
@@ -48,7 +48,7 @@ public class DayTimeBehavior extends RobotBehavior{
 				
 				if(StateLookAround.class.isInstance(getCurrentState()))
 				{
-					if(evt.getParam1()==1) 
+					if(evt.getParam1()==3) 
 					{
 						changeState(new StateSleeping());
 						return;

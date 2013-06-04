@@ -7,20 +7,22 @@ public class StateGreeting implements IRobotState {
 
 	private boolean _DEBUG=true;
 	private static final String TAG="StateGreeting";
+	private volatile boolean isEnd=false;
 	
 	@Override
 	public void onStart(Context ctx) {
 		// TODO Auto-generated method stub
-	if(_DEBUG)
-	{
-		
-			RobotFace.getInstance(ctx).change(RobotFace.MODE_EXCITED,TAG);
-	}
-	else{
-			RobotFace.getInstance(ctx).change(RobotFace.MODE_EXCITED);
+		if(_DEBUG)
+		{
 			
-	}
+				RobotFace.getInstance(ctx).change(RobotFace.MODE_EXCITED,TAG);
+		}
+		else{
+				RobotFace.getInstance(ctx).change(RobotFace.MODE_EXCITED);
+				
+		}
 	
+		isEnd=false;
 			
 	}
 
@@ -53,9 +55,18 @@ public class StateGreeting implements IRobotState {
 			
 			Thread.sleep(200);
 			*/
+			
 			//test
-			RobotMotion.getInstance(ctx).playRMM("listen.rmm");
-			Thread.sleep(6000);
+			RobotMotion.getInstance(ctx).playRMM("greeting.rmm");
+			
+			RobotSpeech.getInstance(ctx).speak("안녕 방가워");
+			RobotSpeech.getInstance(ctx).speak("준비 운동 시작");
+			RobotSpeech.getInstance(ctx).speak("영차 영차");
+			
+			while(!isEnd)
+			{
+				Thread.sleep(100);
+			}
 			
 			}catch(Exception e){}
 	}
@@ -63,8 +74,7 @@ public class StateGreeting implements IRobotState {
 	@Override
 	public void cleanUp(Context ctx) {
 		// TODO Auto-generated method stub
-
-		RobotMotion.getInstance(ctx).offAllLed();
+		RobotMotion.getInstance(ctx).stopRMM();
 	}
 
 	@Override

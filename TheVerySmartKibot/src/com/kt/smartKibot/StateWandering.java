@@ -7,6 +7,7 @@ public class StateWandering implements IRobotState {
 	
 	private static final String TAG="StateWandering";
 	private boolean _DEBUG=true;
+	private volatile boolean isEnd=false;
 	
 	@Override
 	public void onStart(Context ctx) {
@@ -18,18 +19,17 @@ public class StateWandering implements IRobotState {
 			RobotFace.getInstance(ctx).change(RobotFace.MODE_FUN);
 		}
 		
+		isEnd=false;
+		
 		
 	}	@Override
 	public void doAction(Context ctx) {
 		// TODO Auto-generated method stub
 
 		try{
-			
-			Thread.sleep(1000);
-		
 			RobotMotion.getInstance(ctx).startFreeMove();
-		
-			Thread.sleep(1000*10);
+			
+			while(!isEnd){Thread.sleep(100);}
 		
 		}
 		catch(Exception e){}
@@ -45,7 +45,9 @@ public class StateWandering implements IRobotState {
 	@Override
 	public void onChanged(Context ctx) {
 		// TODO Auto-generated method stub
-		
+	
+		isEnd=true;
+		//RobotMotion.getInstance(ctx).stopFreeMove();
 	}
 
 }
