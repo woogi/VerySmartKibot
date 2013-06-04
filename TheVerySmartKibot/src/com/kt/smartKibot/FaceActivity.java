@@ -107,8 +107,6 @@ public class FaceActivity extends Activity implements OnUtteranceCompletedListen
 		if(DEBUG)
 			Log.d(TAG,"try to change face from old id:"+oldMode+" to new id:"+newMode);
 		
-		if(message!=null)
-			Toast.makeText(this,message,Toast.LENGTH_LONG).show();
 		
 		
 		// OpenGL에필요한파일들이있는경로
@@ -181,6 +179,9 @@ public class FaceActivity extends Activity implements OnUtteranceCompletedListen
 			if (DEBUG)
 				Log.i(TAG, "mSurface start :: " + sAniFolder[0]);
 		}
+		
+		if(message!=null)
+			Toast.makeText(this,message,Toast.LENGTH_LONG).show();
 		
 		return true;
 	}

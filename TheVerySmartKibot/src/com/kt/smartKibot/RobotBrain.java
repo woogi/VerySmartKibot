@@ -18,7 +18,7 @@ public class RobotBrain implements IRobotEvtHandler{
 	
 	public static final int MAX_HISTORY_BEHAVIOR=5;
 	public static final int MAX_HISTORY_EVT=10;
-	public static final int MAX_HISTORY_LOG=10;
+	public static final int MAX_HISTORY_LOG=50;
 	
 
 	private BatteryChecker batteryChecker=null;

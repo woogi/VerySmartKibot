@@ -298,7 +298,7 @@ public class RobotMotion {
 					}
 					else
 					{
-					_robotManager.playRmm(DEFAULT_RMM_ALIAS, null);
+						_robotManager.playRmm(DEFAULT_RMM_ALIAS, null);
 					}
 			}
 		});
@@ -663,7 +663,7 @@ public class RobotMotion {
 			_ccsidx[at] = 0;
 
 		 if(ledDimThreads[at] != null){
-		 ledDimThreads[at].kill();
+			 ledDimThreads[at].kill();
 		 }
 		 
 		ledDimThreads[at] = new LedThread() {
@@ -734,7 +734,8 @@ public class RobotMotion {
 //							}
 							try {
 								sleep(time);
-							} catch (InterruptedException e) {
+							} 
+							catch (InterruptedException e) {
 								// TODO Auto-generated catch block
 								e.printStackTrace();
 							}
@@ -743,7 +744,8 @@ public class RobotMotion {
 								alive = false;
 							}
 						}
-					} catch (NullPointerException e) {
+					} 
+					catch (NullPointerException e) {
 					}
 				}
 				
@@ -761,7 +763,9 @@ public class RobotMotion {
 						} else if (at == 4) {
 							_robotManager.setLedColor(at, s_ccs[0]);
 						}
-					} catch (NullPointerException e) {
+					} 
+					catch (NullPointerException e) {
+						
 					}
 				}
 			}//end of run()
