@@ -5,6 +5,7 @@ import java.io.File;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.speech.tts.TextToSpeech.OnUtteranceCompletedListener;
 import android.util.Log;
 import android.view.Menu;
@@ -18,15 +19,118 @@ import android.widget.Toast;
 import com.kt.face.ScreenSaverOpenGLSurface;
 
 
-public class FaceActivity extends Activity implements OnUtteranceCompletedListener{
+public class RobotActivity extends Activity implements OnUtteranceCompletedListener,IRobotEvtDelegator{
 
-	private static final String TAG="Face Activity";
+	private static final String TAG="RobotActivity";
 	private RobotBrain brain;
 	private ScreenSaverOpenGLSurface mSurface = null;
 	private boolean DEBUG=true;
 	private int currentFaceMode=RobotFace.MODE_UNKNOWN;
+	IRobotEvtHandler touchEvtHandler=null;
 	
 	
+
+	@Override
+	public void onHeadLongPressed() {
+		// TODO Auto-generated method stub
+		super.onHeadLongPressed();
+		if(DEBUG)
+		{
+			Toast.makeText(getApplicationContext(),"head long pressed",Toast.LENGTH_SHORT).show();
+		}
+		
+		TouchDetector.getInstance().sendEvent(this, TouchDetector.PARAM_HEAD_LONG_PRESSED);
+		
+	}
+
+	@Override
+	public void onHeadPressed() {
+		// TODO Auto-generated method stub
+		super.onHeadPressed();
+		if(DEBUG)
+		{
+			Toast.makeText(getApplicationContext(),"head pressed",Toast.LENGTH_SHORT).show();
+		}
+		
+		
+		TouchDetector.getInstance().sendEvent(this, TouchDetector.PARAM_HEAD_PRESSED);
+	}
+
+	@Override
+	public void onLeftEarPatted() {
+		// TODO Auto-generated method stub
+		super.onLeftEarPatted();
+		if(DEBUG)
+		{
+			Toast.makeText(getApplicationContext(),"left ear patted",Toast.LENGTH_SHORT).show();
+		}
+		
+		
+		TouchDetector.getInstance().sendEvent(this, TouchDetector.PARAM_LEFT_EAR_PATTED);
+	}
+	
+	@Override
+	public void onRightEarPatted() {
+		// TODO Auto-generated method stub
+		super.onRightEarPatted();
+		if(DEBUG)
+		{
+			Toast.makeText(getApplicationContext(),"right ear patted",Toast.LENGTH_SHORT).show();
+		}
+		
+		TouchDetector.getInstance().sendEvent(this, TouchDetector.PARAM_RIGHT_EAR_PATTED);
+	}
+
+
+	@Override
+	public void onLeftFootPressed() {
+		// TODO Auto-generated method stub
+		super.onLeftFootPressed();
+		if(DEBUG)
+		{
+			Toast.makeText(getApplicationContext(),"left foot pressed",Toast.LENGTH_SHORT).show();
+		}
+		
+		TouchDetector.getInstance().sendEvent(this, TouchDetector.PARAM_LEFT_FOOT_PRESSED);
+	}
+	
+	@Override
+	public void onRightFootPressed() {
+		// TODO Auto-generated method stub
+		super.onRightFootPressed();
+		if(DEBUG)
+		{
+			Toast.makeText(getApplicationContext(),"right foot pressed",Toast.LENGTH_SHORT).show();
+		}
+	
+		TouchDetector.getInstance().sendEvent(this, TouchDetector.PARAM_RIGHT_FOOT_PRESSED);
+	}
+
+
+	
+	@Override
+	public void installHandler(IRobotEvtHandler handler) {
+		// TODO Auto-generated method stub
+		touchEvtHandler=handler;
+	}
+
+	@Override
+	public void uninstallHandler() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void start() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void stop() {
+		// TODO Auto-generated method stub
+		
+	}
 
 	private static final String baseFacePath = "/system/media/robot/face/";
 	private static final String[] facePaths = { "/face15", "/face16", "/face14", "/face03",
@@ -34,8 +138,8 @@ public class FaceActivity extends Activity implements OnUtteranceCompletedListen
 			"/face09", "/face11", "/face12", "/face10", "/face05", "/face06",
 			"/face07" };
 	
-	public static final String ACTION_CHANGE="com.kt.kibot.ChangeFace";
-	public static final String ACTION_FINISH="com.kt.kibot.FinishFace";
+	public static final String ACTION_CHANGE_FACE="com.kt.kibot.ChangeFace";
+	public static final String ACTION_FINISH_FACE="com.kt.kibot.FinishFace";
 	
 	
 	@Override
@@ -64,7 +168,7 @@ public class FaceActivity extends Activity implements OnUtteranceCompletedListen
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		
-		Log.d(TAG,"Face Activity onCreate!");
+		Log.d(TAG,"onCreate");
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
 		
@@ -181,7 +285,7 @@ public class FaceActivity extends Activity implements OnUtteranceCompletedListen
 		}
 		
 		if(message!=null)
-			Toast.makeText(this,message,Toast.LENGTH_LONG).show();
+			Toast.makeText(this,message,Toast.LENGTH_SHORT).show();
 		
 		return true;
 	}
@@ -214,7 +318,7 @@ public class FaceActivity extends Activity implements OnUtteranceCompletedListen
 	@Override
 	protected void onDestroy() {
 		// TODO Auto-generated method stub
-		Log.d(TAG,"Face Activity onDestroy");
+		Log.d(TAG,"onDestroy");
 		clearAnimation();
 		
 		RobotSpeech.finish();
@@ -230,7 +334,7 @@ public class FaceActivity extends Activity implements OnUtteranceCompletedListen
 	@Override
 	protected void onNewIntent(Intent intent) {
 		// TODO Auto-generated method stub
-		Log.d(TAG,"Face Activity onNewIntent!");
+		Log.d(TAG,"onNewIntent");
 		
 		setIntent(intent);
 		super.onNewIntent(intent);
@@ -241,7 +345,7 @@ public class FaceActivity extends Activity implements OnUtteranceCompletedListen
 	 */
 	@Override
 	protected void onResume() {
-		Log.d(TAG,"Face Activity onResume!");
+		Log.d(TAG,"onResume");
 		// TODO Auto-generated method stub
 		super.onResume();
 		
@@ -252,7 +356,7 @@ public class FaceActivity extends Activity implements OnUtteranceCompletedListen
 		RobotMotion.getInstance(this);
 		RobotFace.getInstance(this);
 		
-		if(true==it.getAction().equals(ACTION_CHANGE)){
+		if(true==it.getAction().equals(ACTION_CHANGE_FACE)){
 			Log.d(TAG,"action -- kibot.ChangeFace");
 						if (!startFaceAnimation(getIntent())) {
 				closeFaceAniView();
@@ -260,7 +364,7 @@ public class FaceActivity extends Activity implements OnUtteranceCompletedListen
 		}
 	
 		
-		if(true==it.getAction().equals(ACTION_FINISH)){
+		if(true==it.getAction().equals(ACTION_FINISH_FACE)){
 			Log.d(TAG,"action -- kibot.finishFace");
 			
 			finish();

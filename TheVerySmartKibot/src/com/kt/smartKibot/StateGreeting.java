@@ -57,11 +57,11 @@ public class StateGreeting implements IRobotState {
 			*/
 			
 			//test
-			RobotMotion.getInstance(ctx).playRMM("greeting.rmm");
+			//RobotMotion.getInstance(ctx).playRMM("greeting.rmm");
 			
 			RobotSpeech.getInstance(ctx).speak("안녕 방가워");
-			RobotSpeech.getInstance(ctx).speak("준비 운동 시작");
-			RobotSpeech.getInstance(ctx).speak("영차 영차");
+			//RobotSpeech.getInstance(ctx).speak("준비 운동 시작");
+			//RobotSpeech.getInstance(ctx).speak("영차 영차");
 			
 			while(!isEnd)
 			{

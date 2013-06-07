@@ -37,7 +37,7 @@ public class RobotFace{
 	
 	public void off(){
 		Intent intent = new Intent();
-		intent = new Intent(ctx, FaceActivity.class);
+		intent = new Intent(ctx, RobotActivity.class);
 		intent.setAction("com.kt.kibot.FinishFace");
 		intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 		intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -54,8 +54,8 @@ public class RobotFace{
 		
 		Intent intent = new Intent();
 
-		intent = new Intent(ctx, FaceActivity.class);
-		intent.setAction(FaceActivity.ACTION_CHANGE);
+		intent = new Intent(ctx, RobotActivity.class);
+		intent.setAction(RobotActivity.ACTION_CHANGE_FACE);
 		intent.putExtra("_id", mode);
 		intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
 		intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -68,8 +68,8 @@ public class RobotFace{
 		
 		Intent intent = new Intent();
 
-		intent = new Intent(ctx, FaceActivity.class);
-		intent.setAction(FaceActivity.ACTION_CHANGE);
+		intent = new Intent(ctx, RobotActivity.class);
+		intent.setAction(RobotActivity.ACTION_CHANGE_FACE);
 		intent.putExtra("_id", mode);
 		intent.putExtra("_toast_message", message);
 		intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);

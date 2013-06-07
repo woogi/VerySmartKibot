@@ -337,6 +337,14 @@ public class RobotMotion {
 		_robotManager.moveWheel(-s_spds[speed - 1], 0.0f);
 	}
 
+	public void stopAll(){
+		stopFreeMove();
+		stopRMM();
+		stopWheel();
+		offAllLed();
+		/*head(HEAD_FRONT);*/
+	}
+	
 	public void startFreeMove(){
 	
 		_robotManager.setEmrEnable(true);
@@ -528,6 +536,7 @@ public class RobotMotion {
 		_robotManager.stopWheel();
 		head(HEAD_RIGHT);
 		_robotManager.moveWheel(0.0f, s_rots[speed - 1]);
+		_robotManager.moveHome();
 	}
 
 	/**
@@ -823,6 +832,13 @@ public class RobotMotion {
 
 		}
 	}
+	
+	public void headRoll(float deg,float speed){
+		
+			if (_robotManager != null) {
+				_robotManager.moveHeadRoll(deg, speed);
+			}
+	}
 
 	/**
 	 * 얼굴 보는 방향 설정하는 함수
@@ -830,28 +846,9 @@ public class RobotMotion {
 	 * @param dir
 	 */
 	public void head(int dir) {
-		final float HeadRollSpeed = 0.7f;
+		final float speed = 0.7f;
+		headWithSpeed(dir,speed);
 
-		switch (dir) {
-		case HEAD_FRONT:
-			if (_robotManager != null) {
-				_robotManager.moveHome();
-			}
-			break;
-
-		case HEAD_LEFT:
-			if (_robotManager != null) {
-				_robotManager.moveHeadRoll(-30, HeadRollSpeed);
-			}
-			break;
-
-		case HEAD_RIGHT:
-			if (_robotManager != null) {
-				_robotManager.moveHeadRoll(30, HeadRollSpeed);
-			}
-			break;
-
-		}
 	}
 
 	/**

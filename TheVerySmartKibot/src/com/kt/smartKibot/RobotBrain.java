@@ -62,13 +62,18 @@ public class RobotBrain implements IRobotEvtHandler{
 		this.history_evt=new ArrayList<RobotEvent>(MAX_HISTORY_EVT);
 		this.history_log=new ArrayList<RobotLog>(MAX_HISTORY_LOG);
 		
-		dayTimeBehavior=new DayTimeBehavior();
+		dayTimeBehavior=new DayTimeBehavior(history_log);
 		
 		//timer handler 등록
 		RobotTimer.getInstance().installHandler(this);
 		
 		//noise detector handler 등록
 		NoiseDetector.getInstance().installHandler(this);
+		
+		//touch event handler 등록 
+		TouchDetector.getInstance().installHandler(this);
+		TouchDetector.getInstance().start();
+		
 		
 		//battery checker handler 등
 		batteryChecker=new BatteryChecker(ctx);
@@ -101,32 +106,7 @@ public class RobotBrain implements IRobotEvtHandler{
 		if(history_log.size()==MAX_HISTORY_LOG) history_log.remove(0);
 		history_log.add(logData);
 		
-	
-	
 			
-		/*
-		switch(evt.getType())
-		{
-			case RobotEvent.EVT_ALARM_SCHEDULE_BREIF:
-				ScheduleItem scheduleHandler=new ScheduleItem(ctx);
-				item=scheduleHandler;
-			break;
-				
-			case RobotEvent.EVT_ALARM_GOOD_MORNING:
-				GoodMItem goodMorningHandler=new GoodMItem(ctx);
-				item=goodMorningHandler;
-			break;
-				
-			case RobotEvent.EVT_ALARM_GOOD_BYE:
-				GoodBItem goodByeHandler=new GoodBItem(ctx);
-				item=goodByeHandler;
-			break;
-		}
-		
-		// TODO Auto-generated method stub
-		StateHandler handler= new StateHandler(item);
-		handler.start();
-		*/
 		
 		if(behavior!=null) behavior.handle(ctx!=null?ctx:this.ctx,evt);
 			

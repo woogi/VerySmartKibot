@@ -1,12 +1,20 @@
 package com.kt.smartKibot;
 
+import java.util.ArrayList;
+import java.util.ListIterator;
+
 import android.content.Context;
+import android.text.format.Time;
 import android.util.Log;
 
 public class DayTimeBehavior extends RobotBehavior{
 
 	static final String TAG="DayTimeBehavior";
 	
+	
+	public DayTimeBehavior(ArrayList<RobotLog> logHistory){
+		super(logHistory);
+	}
 	/* (non-Javadoc)
 	 * @see com.kt.smartKibot.RobotBehavior#onStart(android.content.Context)
 	 */
@@ -25,21 +33,35 @@ public class DayTimeBehavior extends RobotBehavior{
 	public void handle(Context ctx, RobotEvent evt) {
 		// TODO Auto-generated method stub
 		
+		Time _t=new Time();
+		_t.setToNow();
+		long currentTime=_t.toMillis(false);
+		
 		switch(evt.getType())
 		{
 			case RobotEvent.EVT_TIMER:
 				if(StateGreeting.class.isInstance(getCurrentState()))
 				{
-					if(evt.getParam1()==3) 
+					if(evt.getParam1()==1 /*test*/) 
 					{
 						changeState(new StateSleeping());
 						return;
 					}
 				}
 				
+				
 				if(StateWandering.class.isInstance(getCurrentState()))
 				{
-					if(evt.getParam1()==3) 
+					if(evt.getParam1()==2) 
+					{
+						changeState(new StateSleeping());
+						return;
+					}
+				}
+				
+				if(StateEvasion.class.isInstance(getCurrentState()))
+				{
+					if(evt.getParam1()==2) 
 					{
 						changeState(new StateSleeping());
 						return;
@@ -48,7 +70,16 @@ public class DayTimeBehavior extends RobotBehavior{
 				
 				if(StateLookAround.class.isInstance(getCurrentState()))
 				{
-					if(evt.getParam1()==3) 
+					if(evt.getParam1()==2) 
+					{
+						changeState(new StateSleeping());
+						return;
+					}
+				}
+				
+				if(StateTouchResponse.class.isInstance(getCurrentState()))
+				{
+					if(evt.getParam1()==2) 
 					{
 						changeState(new StateSleeping());
 						return;
@@ -85,7 +116,56 @@ public class DayTimeBehavior extends RobotBehavior{
 				
 					if(evt.getParam1()==NoiseDetector.PARAM_BIG_NOISE) 
 					{
-						changeState(new StateWandering());
+							
+							//check latest 3 StateSleeping state has received big noise event
+							
+							int cntBigNoise=0;
+							int cntSleepingState=1; //현재 상황이 sleepingState이니 기본 cnt는 1
+							RobotLog prevLog=null;
+							
+						
+							
+							ListIterator<RobotLog> it=history_log.listIterator(history_log.size());
+							
+							while(it.hasPrevious())
+							{
+								RobotLog log=it.previous();
+								
+								if(log.getEvent().getTimeStamp().toMillis(false) +1000*60*10 <currentTime) /* 10분 이내 내역만*/
+									break;
+								
+									
+								if( StateSleeping.class.isInstance(log.getState()) )
+								{
+									if(prevLog!=null&& !StateSleeping.class.isInstance(prevLog.getState()) ) 
+									{
+										//이전상태가 sleeping이 아닐때만... log는 event 단위로 저장하기때문에 상태변했을때만 count 
+											if(++cntSleepingState>3)
+												break;
+											
+										Log.d(TAG,"count of sleeping state:"+cntSleepingState);
+									}
+									
+									if(log.getEvent().getType()==RobotEvent.EVT_NOISE_DETECTION &&
+											log.getEvent().getParam1()==NoiseDetector.PARAM_BIG_NOISE)
+									{
+										++cntBigNoise;
+										Log.d(TAG,"count of big noise"+cntBigNoise);
+									}
+									
+								}
+								
+								prevLog=log;
+							}
+							
+							if(cntBigNoise>=3)
+							{
+								changeState(new StateEvasion());
+							}
+							else{
+								changeState(new StateWandering());
+							}
+							
 						return;
 					}
 				}
@@ -101,12 +181,44 @@ public class DayTimeBehavior extends RobotBehavior{
 					case BatteryChecker.PARAM_POWER_DISCONNECTED:
 						if(StateCharging.class.isInstance(getCurrentState()))
 						{
+							
+							
 							changeState(new StateWandering());
 						}
 						break;
 				
 				}
 			break;
+			
+			
+			case RobotEvent.EVT_TOUCH_BODY:
+			{
+			
+				int _cntTouch=1;
+				ListIterator<RobotLog> it=history_log.listIterator(history_log.size());
+				
+				while(it.hasPrevious())
+				{
+					RobotLog log=it.previous();
+					
+					if(log.getEvent().getTimeStamp().toMillis(false) +1000*60*2 <currentTime) /* 2분 이내 내역만*/
+						break;
+					
+					
+					if(log.getEvent().getType()==RobotEvent.EVT_TOUCH_BODY)
+						++_cntTouch;
+					
+				}
+					
+				Log.d(TAG,"total count of body touch:"+_cntTouch +"in 2 min.");
+				
+				if(_cntTouch<6){
+				changeState(new StateTouchResponse(evt.getParam1(), history_log));
+				}else{
+				changeState(new StateEvasion());
+				}
+			}
+				
 		}//end of switch
 	}//end of handle
 		

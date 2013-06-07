@@ -19,8 +19,13 @@ public class RobotSpeech implements OnInitListener{
 	private boolean isInit=false;
 	
 	static RobotSpeech _this=null;
+	
+	private float pitch=1.0f;
+	private float speed=1.0f;
+	
 	private Context ctx;
 	boolean showToast=true;
+	
 	
 	private RobotSpeech(Context ctx){
 		tts=new TextToSpeech(ctx, RobotSpeech.this);
@@ -56,10 +61,22 @@ public class RobotSpeech implements OnInitListener{
 		
 		
 		if(showToast==true){
+			
 			Toast.makeText(ctx,text,Toast.LENGTH_SHORT).show();
 		}
 		
 		Log.d(TAG,"speakWithCmpNotification: "+text+"flag: "+flag);
+	}
+	
+	public void speak(String msg,float speed,float pitch){
+		
+		tts.setSpeechRate(speed);
+		tts.setPitch(pitch);
+		speak(msg);
+		
+		tts.setSpeechRate(this.speed);
+		tts.setPitch(this.pitch);
+		
 	}
 	
 	public void speak(String msg){
@@ -96,7 +113,11 @@ public class RobotSpeech implements OnInitListener{
 		if(isInit==true)
 		{
 			tts.setLanguage(Locale.KOREA);
-			tts.setSpeechRate((float)0.9);
+			speed=0.9f;
+			pitch=1.0f;
+			
+			tts.setSpeechRate(speed);
+			tts.setPitch(pitch);
 		}
 	}
 

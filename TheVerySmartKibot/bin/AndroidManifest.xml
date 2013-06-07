@@ -22,7 +22,7 @@
         android:label="@string/app_name"
         android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
         <activity
-            android:name="com.kt.smartKibot.FaceActivity"
+            android:name="com.kt.smartKibot.RobotActivity"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

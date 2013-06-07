@@ -11,7 +11,6 @@ public class StateWandering implements IRobotState {
 	
 	@Override
 	public void onStart(Context ctx) {
-		// TODO Auto-generated method stub
 		if(_DEBUG){
 			RobotFace.getInstance(ctx).change(RobotFace.MODE_FUN,TAG);
 		}
@@ -24,7 +23,8 @@ public class StateWandering implements IRobotState {
 		
 	}	@Override
 	public void doAction(Context ctx) {
-		// TODO Auto-generated method stub
+		
+		RobotSpeech.getInstance(ctx).speak("앗  무슨 소리지?",1.0f,1.3f);
 
 		try{
 			RobotMotion.getInstance(ctx).startFreeMove();
@@ -37,7 +37,6 @@ public class StateWandering implements IRobotState {
 
 	@Override
 	public void cleanUp(Context ctx) {
-		// TODO Auto-generated method stub
 		RobotMotion.getInstance(ctx).stopFreeMove();
 		RobotMotion.getInstance(ctx).offAllLed();
 	}

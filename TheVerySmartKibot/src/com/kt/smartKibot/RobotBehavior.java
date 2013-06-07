@@ -11,6 +11,8 @@ public abstract class RobotBehavior implements IRobotEvtHandler{
 
 
 	protected ArrayList<IRobotState> history_state;
+	protected ArrayList<RobotLog> history_log;
+	
 	public static final int MAX_HISTORY_STATE=10;
 	protected Context ctx=null;
 	
@@ -18,6 +20,8 @@ public abstract class RobotBehavior implements IRobotEvtHandler{
 		this.ctx=ctx;
 		
 	}
+	
+	
 	
 	abstract public void handle(Context ctx,RobotEvent evt);
 	abstract public void onStop(Context ctx);
@@ -29,7 +33,7 @@ public abstract class RobotBehavior implements IRobotEvtHandler{
 	abstract protected void onStateActionEnd(IRobotState state);
 	
 	protected void changeState(IRobotState state){
-		StateHandler handler= new StateHandler(state,this);
+		StatePresenter presenter= new StatePresenter(state,this);
 		
 		if(history_state.size()==MAX_HISTORY_STATE) history_state.remove(0);
 			
@@ -39,7 +43,7 @@ public abstract class RobotBehavior implements IRobotEvtHandler{
 			oldState.onChanged(getContext());
 		
 		history_state.add(state);
-		handler.start();
+		presenter.start();
 	}
 	
 	protected IRobotState getLastState()
@@ -69,9 +73,23 @@ public abstract class RobotBehavior implements IRobotEvtHandler{
 		history_state=new ArrayList<IRobotState>(MAX_HISTORY_STATE);
 	}
 	
+	public RobotBehavior(ArrayList<RobotLog> logHistory){
+		history_state=new ArrayList<IRobotState>(MAX_HISTORY_STATE);
+		history_log=logHistory;
+	}
+	
 }
 
-class StateHandler extends Thread{
+
+/**
+ * StatePresenter
+ *
+ * 
+ * State의 onSart,doAction,cleanUp method를 순서대로 호출하는 역할 
+ * 각 method 에서 UI관련 코드나 다른 activity 등으로 Intent를 보낼경우가 많이 예상되므 (이벤트를 보내는 방식으로 동작하는 경우) 원하 동작이 즉각 실행할수있도록
+ * 각 method 내부에서 직접 다음 method를 호출하지 않 다음 동작에 해당하는 메세지만 보내고 즉 종료
+ */
+class StatePresenter extends Thread{
 	public Handler mHandler;
 	public int state=0;
 	static final int DO_PREPARE=0;
@@ -81,7 +99,7 @@ class StateHandler extends Thread{
 	IRobotState item;
 	RobotBehavior behavior;
 	 
-	StateHandler(IRobotState item,RobotBehavior behavior){
+	StatePresenter(IRobotState item,RobotBehavior behavior){
 		setName("Robot Action Hanlder");
 		this.item=item;
 		this.behavior=behavior;	

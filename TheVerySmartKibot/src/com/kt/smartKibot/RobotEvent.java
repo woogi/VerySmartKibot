@@ -22,6 +22,7 @@ public class RobotEvent {
 	public static final int EVT_TIMER=3;
 	public static final int EVT_NOISE_DETECTION=4;
 	public static final int EVT_BATTERY_STATE=5;
+	public static final int EVT_TOUCH_BODY=6;
 	
 
 	
