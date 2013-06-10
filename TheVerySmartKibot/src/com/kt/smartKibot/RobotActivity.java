@@ -33,33 +33,35 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 	@Override
 	public void onHeadLongPressed() {
 		// TODO Auto-generated method stub
-		super.onHeadLongPressed();
+		//super.onHeadLongPressed();
 		if(DEBUG)
 		{
 			Toast.makeText(getApplicationContext(),"head long pressed",Toast.LENGTH_SHORT).show();
 		}
 		
 		TouchDetector.getInstance().sendEvent(this, TouchDetector.PARAM_HEAD_LONG_PRESSED);
+		finish();
 		
 	}
 
 	@Override
 	public void onHeadPressed() {
 		// TODO Auto-generated method stub
-		super.onHeadPressed();
+		//super.onHeadPressed();
 		if(DEBUG)
 		{
 			Toast.makeText(getApplicationContext(),"head pressed",Toast.LENGTH_SHORT).show();
 		}
 		
 		
-		TouchDetector.getInstance().sendEvent(this, TouchDetector.PARAM_HEAD_PRESSED);
+	//	TouchDetector.getInstance().sendEvent(this, TouchDetector.PARAM_HEAD_PRESSED);
+		finish();
 	}
 
 	@Override
 	public void onLeftEarPatted() {
 		// TODO Auto-generated method stub
-		super.onLeftEarPatted();
+		//super.onLeftEarPatted();
 		if(DEBUG)
 		{
 			Toast.makeText(getApplicationContext(),"left ear patted",Toast.LENGTH_SHORT).show();
@@ -72,7 +74,7 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 	@Override
 	public void onRightEarPatted() {
 		// TODO Auto-generated method stub
-		super.onRightEarPatted();
+		//super.onRightEarPatted();
 		if(DEBUG)
 		{
 			Toast.makeText(getApplicationContext(),"right ear patted",Toast.LENGTH_SHORT).show();
@@ -85,7 +87,7 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 	@Override
 	public void onLeftFootPressed() {
 		// TODO Auto-generated method stub
-		super.onLeftFootPressed();
+		//super.onLeftFootPressed();
 		if(DEBUG)
 		{
 			Toast.makeText(getApplicationContext(),"left foot pressed",Toast.LENGTH_SHORT).show();
@@ -97,7 +99,7 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 	@Override
 	public void onRightFootPressed() {
 		// TODO Auto-generated method stub
-		super.onRightFootPressed();
+		//super.onRightFootPressed();
 		if(DEBUG)
 		{
 			Toast.makeText(getApplicationContext(),"right foot pressed",Toast.LENGTH_SHORT).show();
@@ -262,6 +264,7 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 				@Override
 				public boolean onTouch(View v, MotionEvent event) {
 					if (event.getAction() == MotionEvent.ACTION_DOWN) {
+						Log.d(TAG, "touch face to finish activity");
 						finish();
 					}
 					return true;
@@ -320,6 +323,7 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 		// TODO Auto-generated method stub
 		Log.d(TAG,"onDestroy");
 		clearAnimation();
+		brain.finalize();
 		
 		RobotSpeech.finish();
 		RobotMotion.finish();

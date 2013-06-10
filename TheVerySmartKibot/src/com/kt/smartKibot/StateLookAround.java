@@ -30,12 +30,13 @@ public class StateLookAround implements IRobotState {
 		// TODO Auto-generated method stub
 		
 		int rand=(int) (Math.random()*5);
+		int cnt=0;
 		
 		
 		switch(rand){
 		
-			case 0:RobotSpeech.getInstance(ctx).speak("누구야? ",1.0f,1.1f);
-			break;
+		//	case 0:RobotSpeech.getInstance(ctx).speak("누구야? ",1.0f,1.1f);
+		//	break;
 			
 			case 1:RobotSpeech.getInstance(ctx).speak("누구 있어요?",1.0f,1.1f);
 			break;
@@ -43,23 +44,29 @@ public class StateLookAround implements IRobotState {
 			case 2:RobotSpeech.getInstance(ctx).speak("누구세요? ",1.0f,1.1f);
 			break;
 			
-			case 3:RobotSpeech.getInstance(ctx).speak("거기 누구신지?",0.8f,1.1f);
-			break;
+		//	case 3:RobotSpeech.getInstance(ctx).speak("거기 누구신지?",0.8f,1.1f);
+		//	break;
 			
-			case 4:RobotSpeech.getInstance(ctx).speak("어서오세요!",1.0f,0.9f);
-			break;
+		//	case 4:RobotSpeech.getInstance(ctx).speak("어서오세요!",1.0f,0.9f);
+		//	break;
 		}
+		
+		
+		RobotMotion.getInstance(ctx).setLogoLEDDimming(2);
 		
 		try{
 			
 			while(!isEnd)
 			{
 				//RobotMotion.getInstance(ctx).led(0,100,3);
-				
+				++cnt;
+				if(cnt==10){
 				int direction=(int)(Math.random()*2l )+RobotMotion.HEAD_LEFT;
 				Log.d(TAG,"head direction:"+direction);
 				RobotMotion.getInstance(ctx).headWithSpeed(direction,0.3f);
-				Thread.sleep(500);
+				}
+				if(cnt==10) cnt=0;
+				Thread.sleep(200);
 				
 			}
 		
@@ -89,6 +96,7 @@ public class StateLookAround implements IRobotState {
 		//RobotMotion.getInstance(ctx).stopRMM();
 		RobotMotion.getInstance(ctx).stopAll();
 		RobotMotion.getInstance(ctx).headWithSpeed(RobotMotion.HEAD_FRONT,1.0f);
+		RobotMotion.getInstance(ctx).setLogoLEDDimming(0);
 	}
 
 	@Override

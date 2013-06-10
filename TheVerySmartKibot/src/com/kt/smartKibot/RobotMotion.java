@@ -8,7 +8,6 @@ import android.app.RobotManager;
 import android.content.Context;
 import android.os.RemoteException;
 import android.util.Log;
-import android.widget.Toast;
 
 public class RobotMotion {
 	
@@ -50,7 +49,8 @@ public class RobotMotion {
 	private static float[] s_spds = { 0.06f, 0.09f, 0.12f, 0.15f, 0.18f };
 	private static float[] s_rots = { 40.0f, 50.0f, 60.0f, 70.0f, 80.0f };
 	//public final int lengthToTime = 250000;
-	public final int lengthToTime = 100000;
+	//public final int lengthToTime = 100000;
+	public final int lengthToTime = 20000;
 	public final int degToTime = 1200;
 	public final int friction = 5;
 
@@ -212,7 +212,7 @@ public class RobotMotion {
 	 * @param speakOn
 	 * @param faceOn
 	 */
-	public void goFoward(int speed, boolean speakOn, boolean faceOn) {
+	private void goForward(int speed, boolean speakOn, boolean faceOn) {
 		if (curWheelState != MOVE_FOWARD) {
 			if (speakOn) {
 				// speakMsg("앞으로!");
@@ -240,29 +240,20 @@ public class RobotMotion {
 	 * 
 	 * @param speed
 	 */
-	public void goFoward(int speed) {
-		goFoward(speed, true, true);
+	public void goForward(int speed) {
+		goForward(speed, true, true);
 	}
 
-	/**
-	 * 얼굴 표정 나타나지 않고 TTS 나타나지 않고 전진
-	 * 
-	 * @param speed
-	 */
-	public void goFowardWithoutSpeakAndFace(int speed) {
-		goFoward(speed, false, false);
-	}
 
 	/**
 	 * 앞으로 이동하는 함수
 	 * 
 	 * @param speed
-	 * @param length
-	 *            10cm ///약 length * 25cm 만큼 전진
+	 * @param len length * 10cm 만큼 전진
 	//public final int lengthToTime = 250000;
 	 */
-	public void goFoward(int speed, int length) {
-		goFoward(speed);
+	public void goForward(int speed, int length) {
+		goForward(speed);
 		long pastMillTime = System.currentTimeMillis();
 		int time = length * lengthToTime / (speed * 30 + 30);
 		if (D)
@@ -273,18 +264,6 @@ public class RobotMotion {
 		stopWheel();
 	}
 
-	public void goFowardWithoutSpeak(int speed, int length) {
-		goFoward(speed, false, true);
-		long pastMillTime = System.currentTimeMillis();
-		int time = length * lengthToTime / (speed * 30 + 30);
-		if (D)
-			Log.i(TAG, time + "");
-		while ((System.currentTimeMillis() - pastMillTime) < time) {
-
-		}
-		
-		stopWheel();
-	}
 
 	public void playRMM(String fileName){
 		
@@ -316,7 +295,7 @@ public class RobotMotion {
 	
 	
 		
-	public void goBack(int speed, boolean speakOn, boolean faceOn) {
+	private void goBack(int speed, boolean speakOn, boolean faceOn) {
 		if (curWheelState != MOVE_BACK) {
 			if (speakOn) {
 				// speakMsg("뒤로!");
@@ -396,14 +375,6 @@ public class RobotMotion {
 		stopWheel();
 	}
 	
-	/**
-	 * 뒤로 이동하는 함수 이때 음성은 나오지 않는다.
-	 * 
-	 * @param speed
-	 */
-	public void goBackWithoutSpeakAndFace(int speed) {
-		goBack(speed, false, false);
-	}
 
 	/**
 	 * 왼쪽으로 회전하는 함수
@@ -473,43 +444,6 @@ public class RobotMotion {
 		turnLeft(speed, false, false);
 	}
 
-	/**
-	 * 왼쪽으로 표정없이 말을 하지 않고 회정하는 함수
-	 * 
-	 * @param speed
-	 * @param deg
-	 */
-	public void turnLeftWithoutSpeakAndFace(int speed, int deg) {
-		turnLeftWithoutSpeakAndFace(speed);
-		long pastMillTime = System.currentTimeMillis();
-		int time = (int) ((deg * degToTime / (s_rots[speed - 1])) - friction
-				* s_rots[speed - 1]);
-		if (D)
-			Log.i(TAG, time + "");
-		while ((System.currentTimeMillis() - pastMillTime) < time) {
-		}
-		if (D)
-			Log.i(TAG, "deg = " + deg + ", speed = " + speed + ", time = "
-					+ (System.currentTimeMillis() - pastMillTime));
-
-		stopWheel();
-	}
-
-	public void turnLeftWithoutSpeak(int speed, int deg) {
-		turnLeft(speed, false, true);
-		long pastMillTime = System.currentTimeMillis();
-		int time = (int) ((deg * degToTime / (s_rots[speed - 1])) - friction
-				* s_rots[speed - 1]);
-		if (D)
-			Log.i(TAG, time + "");
-		while ((System.currentTimeMillis() - pastMillTime) < time) {
-		}
-		if (D)
-			Log.i(TAG, "deg = " + deg + ", speed = " + speed + ", time = "
-					+ (System.currentTimeMillis() - pastMillTime));
-
-		stopWheel();
-	}
 
 	/**
 	 * 오른쪽으로 회전하는 함수
@@ -569,50 +503,6 @@ public class RobotMotion {
 		stopWheel();
 	}
 
-	/**
-	 * 오른쪽으로 회전하는 함수
-	 * 
-	 * @param speed
-	 */
-	public void turnRightWithoutSpeekAndFace(int speed) {
-		turnRight(speed, false, false);
-	}
-
-	/**
-	 * 왼쪽으로 회전
-	 * 
-	 * @param speed
-	 * @param deg
-	 */
-	public void turnRightWithoutSpeekAndFace(int speed, int deg) {
-		turnRightWithoutSpeekAndFace(speed);
-		long pastMillTime = System.currentTimeMillis();
-		int time = (int) ((deg * degToTime / (s_rots[speed - 1])) - friction
-				* s_rots[speed - 1]);
-		if (D)
-			Log.i(TAG, time + "");
-		while ((System.currentTimeMillis() - pastMillTime) < time) {
-		}
-		if (D)
-			Log.i(TAG, "deg = " + deg + ", speed = " + speed + ", time = "
-					+ (System.currentTimeMillis() - pastMillTime));
-		stopWheel();
-	}
-
-	public void turnRightWithoutSpeek(int speed, int deg) {
-		turnRight(speed, false, true);
-		long pastMillTime = System.currentTimeMillis();
-		int time = (int) ((deg * degToTime / (s_rots[speed - 1])) - friction
-				* s_rots[speed - 1]);
-		if (D)
-			Log.i(TAG, time + "");
-		while ((System.currentTimeMillis() - pastMillTime) < time) {
-		}
-		if (D)
-			Log.i(TAG, "deg = " + deg + ", speed = " + speed + ", time = "
-					+ (System.currentTimeMillis() - pastMillTime));
-		stopWheel();
-	}
 
 	/**
 	 * 정지하는 함수
@@ -642,25 +532,33 @@ public class RobotMotion {
 		_robotManager.moveWheel(0.0f, 0.0f);
 	}
 
-	/**
-	 * 키못 움직임을 정지하는 함수
-	 */
 	public void stopWheel() {
 		stopWheel(true, true);
 	}
 
-	/**
-	 * 
-	 * 키못 움직임을 정지하는 함수
-	 */
-	public void stopWheelWithoutSpeekAndFace() {
-		stopWheel(false, false);
-	}
 
-	public void stopWheelWithoutSpeek() {
-		stopWheel(false, true);
+	/*
+	 * 0:0ff
+	 * 1~63: LED brightness
+	 */
+	public void setLogoLEDDimming(int brightness){
+		if(brightness==0)
+		{
+			_robotManager.setDimLedEnable(false);
+		}
+		else{
+			
+			_robotManager.setDimLedEnable(true);
+			_robotManager.setDimLedLevel(brightness);
+		}
+		
+		try{
+			Thread.sleep(200);
+			
+		}catch(Exception e){ e.printStackTrace();}
+		
+		Log.d(TAG,"logoDimming:"+brightness);
 	}
-	
 
 
 	/**

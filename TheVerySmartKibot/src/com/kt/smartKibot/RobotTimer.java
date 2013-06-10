@@ -34,7 +34,7 @@ public class RobotTimer implements IRobotEvtDelegator {
 	synchronized public void start(){
 		_t=new Timer();
 		_cnt=0;
-		_t.scheduleAtFixedRate(new Scheduler(),/*1000*10*/0,1000*10); /* every 10 sec*/
+		_t.scheduleAtFixedRate(new Scheduler(),/*1000*10*/0,500*10); /* every 5 sec*/
 	}
 	
 	@Override
