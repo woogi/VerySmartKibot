@@ -51,7 +51,7 @@ public class StateWandering implements IRobotState {
 				break;
 				case 3: RobotSpeech.getInstance(ctx).speak("어디있니?",1.0f,1.3f);
 				break;
-				case 4: RobotSpeech.getInstance(ctx).speak("놀자",1.0f,1.3f);
+				case 4: RobotSpeech.getInstance(ctx).speak("나랑 놀자!",1.0f,1.3f);
 				break;
 				}
 				

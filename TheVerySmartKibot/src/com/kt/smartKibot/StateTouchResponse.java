@@ -63,10 +63,10 @@ public class StateTouchResponse implements IRobotState {
 			case 0:RobotSpeech.getInstance(ctx).speak("아이 간지러워",1.1f,1.1f);
 			break;
 			
-			case 1:RobotSpeech.getInstance(ctx).speak("하하하,",1.2f,1.0f);
+			case 1:RobotSpeech.getInstance(ctx).speak("하하하,",1.2f,1.1f);
 			break;
 			
-			case 2:RobotSpeech.getInstance(ctx).speak("아이 좋아",1.0f,1.0f);
+			case 2:RobotSpeech.getInstance(ctx).speak("아이 좋아",1.2f,1.1f);
 			break;
 		}
 

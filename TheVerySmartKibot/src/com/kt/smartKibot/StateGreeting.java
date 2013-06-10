@@ -37,7 +37,7 @@ public class StateGreeting implements IRobotState {
 			//RobotMotion.getInstance(ctx).led(0,100,3);
 			//Thread.sleep(2000);
 				
-			RobotSpeech.getInstance(ctx).speak("영차 영차");
+			//RobotSpeech.getInstance(ctx).speak("영차 영차");
 			
 			RobotMotion.getInstance(ctx).setLogoLEDDimming(2);
 			Thread.sleep(200);
