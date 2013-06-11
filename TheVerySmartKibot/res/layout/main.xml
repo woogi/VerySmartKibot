@@ -3,6 +3,13 @@
    	android:layout_width="fill_parent"
 	android:layout_height="fill_parent"
    	android:orientation="vertical" >
+   	
+  <com.kt.smartKibot.FaceDetector
+        android:id="@+id/camera_surface"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+   	
+        
    	<LinearLayout 
        android:id="@+id/layout"
        android:layout_width="fill_parent"
@@ -24,6 +31,5 @@
 		</ImageView>
 	
    </FrameLayout> 
-  
-
+   
 </LinearLayout>
