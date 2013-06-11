@@ -49,7 +49,7 @@ public class StateLookAround implements IRobotState, FaceDetector.OnFaceDetectLi
 			case 1:RobotSpeech.getInstance(ctx).speak("누구 있어요?",1.0f,1.1f);
 			break;
 			
-			case 2:RobotSpeech.getInstance(ctx).speak("누구세요? ",1.0f,1.1f);
+			case 2:RobotSpeech.getInstance(ctx).speak("어디 있어? ",1.0f,1.1f);
 			break;
 			
 		//	case 3:RobotSpeech.getInstance(ctx).speak("거기 누구신지?",0.8f,1.1f);
@@ -72,18 +72,21 @@ public class StateLookAround implements IRobotState, FaceDetector.OnFaceDetectLi
 				int direction=(int)(Math.random()*2l )+RobotMotion.HEAD_LEFT;
 				Log.d(TAG,"head direction:"+direction);
 				RobotMotion.getInstance(ctx).headWithSpeed(direction,0.3f);
-
 				Thread.sleep(500);
-			}
+				
 			if (faceDetected){
-			    RobotSpeech.getInstance(ctx).speak("안녕하세요? ",1.0f,1.1f);
+			    RobotSpeech.getInstance(ctx).speak("찾았다!",1.0f,1.1f);
 			    
-			    RobotMotion.getInstance(ctx).goForward(1, 1);
+			    RobotMotion.getInstance(ctx).goForward(1, 5);
+			    
+			    isEnd=true;
 
 				}
-				if(cnt==10) cnt=0;
-				Thread.sleep(200);
+			
+			if(cnt==10) cnt=0;
+			Thread.sleep(200);
 				
+			}
 
 			}
 		
