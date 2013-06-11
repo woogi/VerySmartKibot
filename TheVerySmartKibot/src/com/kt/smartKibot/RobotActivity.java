@@ -166,9 +166,9 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 		
 	}
 	
-	private static FaceDetector fd;
-	public static FaceDetector getFaceDetector(){
-	    return fd;
+	private static FaceCameraSurface faceSurface;
+	public static FaceCameraSurface getFaceSurface(){
+	    return faceSurface;
 	}
 	
 	@Override
@@ -178,9 +178,9 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
 		
-		fd = (FaceDetector)findViewById(R.id.camera_surface);
-		fd.initialize(getFilesDir(), getAssets());
-
+        	faceSurface = (FaceCameraSurface) findViewById(R.id.face_surface);
+        	faceSurface.initializeAssets(getFilesDir(), getAssets());
+        	
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 		
 		Intent it=getIntent();
@@ -330,8 +330,9 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 		// TODO Auto-generated method stub
 		Log.d(TAG,"onDestroy");
 		clearAnimation();
-		brain.finalize();
-		
+		if (brain != null){
+		    brain.finalize();
+		}
 		RobotSpeech.finish();
 		RobotMotion.finish();
 		RobotFace.finish();

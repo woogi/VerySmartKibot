@@ -3,9 +3,6 @@ package com.kt.smartKibot;
 import java.util.ArrayList;
 
 import android.content.Context;
-import android.os.Handler;
-import android.os.Looper;
-import android.os.Message;
 
 
 
@@ -75,6 +72,9 @@ public class RobotBrain implements IRobotEvtHandler{
 		//noise detector handler 등록
 		NoiseDetector.getInstance().installHandler(this);
 		
+		//face detector handler
+        	FaceDetector.getInstance().installHandler(this);
+
 		//touch event handler 등록 
 		TouchDetector.getInstance().installHandler(this);
 		TouchDetector.getInstance().start();

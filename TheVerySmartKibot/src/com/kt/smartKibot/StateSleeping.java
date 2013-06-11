@@ -1,9 +1,6 @@
 package com.kt.smartKibot;
 
-import java.util.Random;
-
 import android.content.Context;
-import android.widget.Toast;
 
 public class StateSleeping implements IRobotState {
 	

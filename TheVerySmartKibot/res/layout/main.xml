@@ -4,8 +4,8 @@
 	android:layout_height="fill_parent"
    	android:orientation="vertical" >
    	
-  <com.kt.smartKibot.FaceDetector
-        android:id="@+id/camera_surface"
+  <com.kt.smartKibot.FaceCameraSurface
+        android:id="@+id/face_surface"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"/>
    	
