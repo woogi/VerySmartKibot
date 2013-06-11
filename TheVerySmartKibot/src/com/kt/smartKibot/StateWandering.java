@@ -24,12 +24,38 @@ public class StateWandering implements IRobotState {
 	}	@Override
 	public void doAction(Context ctx) {
 		
-		RobotSpeech.getInstance(ctx).speak("앗  무슨 소리지?",1.0f,1.3f);
 
+		int rand=(int) (Math.random()*10l);
+		
+		
+		switch(rand){
+		
+			case 0: RobotSpeech.getInstance(ctx).speak("앗  무슨 소리지?",1.0f,1.3f);
+			break;
+			
+			case 1: RobotSpeech.getInstance(ctx).speak("누구야?",1.0f,1.3f);
+			break;
+		}
+			
 		try{
 			RobotMotion.getInstance(ctx).startFreeMove();
+			RobotMotion.getInstance(ctx).setLogoLEDDimming(20);
 			
-			while(!isEnd){Thread.sleep(100);}
+			while(!isEnd){
+				
+				rand=(int) (Math.random()*100l);
+				
+				switch(rand){
+				
+				case 2: RobotSpeech.getInstance(ctx).speak("어디있어?",1.0f,1.3f);
+				break;
+				case 3: RobotSpeech.getInstance(ctx).speak("어디있니?",1.0f,1.3f);
+				break;
+				case 4: RobotSpeech.getInstance(ctx).speak("나랑 놀자!",1.0f,1.3f);
+				break;
+				}
+				
+				Thread.sleep(200);}
 		
 		}
 		catch(Exception e){}
@@ -39,6 +65,7 @@ public class StateWandering implements IRobotState {
 	public void cleanUp(Context ctx) {
 		RobotMotion.getInstance(ctx).stopFreeMove();
 		RobotMotion.getInstance(ctx).offAllLed();
+		RobotMotion.getInstance(ctx).setLogoLEDDimming(0);
 	}
 
 	@Override

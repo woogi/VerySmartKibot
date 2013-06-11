@@ -41,6 +41,15 @@ public class NoiseCheckThread extends Thread {
 
 		while (isRecording) {
 			int bufferReadResult = audioRecord.read(buffer, 0, bufferSize);
+<<<<<<< HEAD
+=======
+			
+			if(bufferReadResult==0) continue;
+			
+			psum=0;
+			if(count<300) count++;
+			if(++tcount==1000) tcount=1;
+>>>>>>> bf8f7ab7a62590d9bda6219b954f69cef7a7a7d4
 			
 			if (bufferReadResult != 0){
         			psum=0;

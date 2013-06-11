@@ -42,7 +42,7 @@ public class DayTimeBehavior extends RobotBehavior{
 			case RobotEvent.EVT_TIMER:
 				if(StateGreeting.class.isInstance(getCurrentState()))
 				{
-					if(evt.getParam1()==1 /*test*/) 
+					if(evt.getParam1()==3 /*test*/) 
 					{
 						changeState(new StateSleeping());
 						return;
@@ -52,7 +52,7 @@ public class DayTimeBehavior extends RobotBehavior{
 				
 				if(StateWandering.class.isInstance(getCurrentState()))
 				{
-					if(evt.getParam1()==2) 
+					if(evt.getParam1()==4) 
 					{
 						changeState(new StateSleeping());
 						return;
@@ -61,7 +61,7 @@ public class DayTimeBehavior extends RobotBehavior{
 				
 				if(StateEvasion.class.isInstance(getCurrentState()))
 				{
-					if(evt.getParam1()==2) 
+					if(evt.getParam1()==4) 
 					{
 						changeState(new StateSleeping());
 						return;
@@ -70,7 +70,7 @@ public class DayTimeBehavior extends RobotBehavior{
 				
 				if(StateLookAround.class.isInstance(getCurrentState()))
 				{
-					if(evt.getParam1()==2) 
+					if(evt.getParam1()==4) 
 					{
 						changeState(new StateSleeping());
 						return;
@@ -79,7 +79,7 @@ public class DayTimeBehavior extends RobotBehavior{
 				
 				if(StateTouchResponse.class.isInstance(getCurrentState()))
 				{
-					if(evt.getParam1()==2) 
+					if(evt.getParam1()==4) 
 					{
 						changeState(new StateSleeping());
 						return;
@@ -88,7 +88,7 @@ public class DayTimeBehavior extends RobotBehavior{
 				
 				if(StateSleeping.class.isInstance(getCurrentState()))
 				{
-					if(evt.getParam1()==6)
+					if(evt.getParam1()==12)
 					{
 						int rand=(int)(Math.random()*2);
 						if(rand==0){
@@ -160,7 +160,7 @@ public class DayTimeBehavior extends RobotBehavior{
 							
 							if(cntBigNoise>=3)
 							{
-								changeState(new StateEvasion());
+								changeState(new StateEvasion(StateEvasion.CAUSE_BIG_NOISE));
 							}
 							else{
 								changeState(new StateWandering());
@@ -215,7 +215,7 @@ public class DayTimeBehavior extends RobotBehavior{
 				if(_cntTouch<6){
 				changeState(new StateTouchResponse(evt.getParam1(), history_log));
 				}else{
-				changeState(new StateEvasion());
+				changeState(new StateEvasion(StateEvasion.CAUSE_TOUCH_TOO_MUCH));
 				}
 			}
 				
@@ -243,6 +243,9 @@ public class DayTimeBehavior extends RobotBehavior{
 	public void onStop(Context ctx) {
 		// TODO Auto-generated method stub
 		RobotTimer.getInstance().stop();
+		
+		getCurrentState().onChanged(ctx);
+		
 	}
 
 	/* (non-Javadoc)
@@ -251,6 +254,29 @@ public class DayTimeBehavior extends RobotBehavior{
 	@Override
 	protected void onStateActionEnd(IRobotState state) {
 		// TODO Auto-generated method stub
+		
+		Log.d(TAG,"state end:"+state);
+		
+		if(StateTouchResponse.class.isInstance(state) || StateEvasion.class.isInstance(state)){
+			IRobotState lastState=null;
+			
+			ListIterator<RobotLog> it=history_log.listIterator(history_log.size());
+			while(it.hasPrevious())
+			{
+				RobotLog log=it.previous();
+				if(!StateTouchResponse.class.isInstance(log.getState()) && !StateEvasion.class.isInstance(log.getState()))
+				{
+					lastState=log.getState();
+					break;
+				}
+				
+			}
+				
+			if(lastState!=null){
+				changeState(lastState);
+			}
+			return;
+		}
 		
 	}
 

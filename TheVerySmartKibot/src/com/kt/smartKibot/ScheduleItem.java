@@ -206,7 +206,7 @@ public class ScheduleItem implements IRobotState {
 		RobotMotion.getInstance(ctx).head(RobotMotion.HEAD_FRONT);
 		Thread.sleep(200);
 		
-		RobotMotion.getInstance(ctx).goFoward(1, 1);
+		RobotMotion.getInstance(ctx).goForward(1, 1);
 		
 		Thread.sleep(200);
 		RobotSpeech.getInstance(ctx).speakWithCmpNotification(ttsMsg,RobotFace.UTT_ID_FACE_ACT_FACE_OFF_10_SEC,null);

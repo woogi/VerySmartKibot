@@ -50,8 +50,13 @@ public class RobotBrain implements IRobotEvtHandler{
 	}
 	
 	public void finalize(){
+		
 		batteryChecker.stop();
 		batteryChecker=null;
+		
+		RobotMotion.getInstance(ctx).stopAll();
+		
+		getCurrentBehavior().onStop(ctx);
 		
 	}
 	

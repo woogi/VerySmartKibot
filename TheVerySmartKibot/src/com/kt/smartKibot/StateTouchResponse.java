@@ -10,6 +10,7 @@ public class StateTouchResponse implements IRobotState {
 	ArrayList<RobotLog> history=null;
 	private boolean _DEBUG=true;
 	private String TAG="StateTouchResponse";
+	private volatile boolean isEnd=false;
 	
 	StateTouchResponse(int where,ArrayList<RobotLog> log){
 		touchWhere=where;
@@ -20,6 +21,7 @@ public class StateTouchResponse implements IRobotState {
 	public void onStart(Context ctx) {
 		// TODO Auto-generated method stub
 		
+		isEnd=false;
 		switch(touchWhere){
 			case TouchDetector.PARAM_LEFT_EAR_PATTED:
 			case TouchDetector.PARAM_LEFT_FOOT_PRESSED:
@@ -42,6 +44,9 @@ public class StateTouchResponse implements IRobotState {
 				break;
 				
 		}
+		
+		
+		RobotMotion.getInstance(ctx).setLogoLEDDimming(2);
 
 	}
 
@@ -58,21 +63,28 @@ public class StateTouchResponse implements IRobotState {
 			case 0:RobotSpeech.getInstance(ctx).speak("아이 간지러워",1.1f,1.1f);
 			break;
 			
-			case 1:RobotSpeech.getInstance(ctx).speak("하하하,",1.2f,1.0f);
+			case 1:RobotSpeech.getInstance(ctx).speak("하하하,",1.2f,1.1f);
 			break;
 			
-			case 2:RobotSpeech.getInstance(ctx).speak("아이 좋아",1.0f,1.0f);
+			case 2:RobotSpeech.getInstance(ctx).speak("아이 좋아",1.2f,1.1f);
 			break;
 		}
 
 		try{
 			
 			RobotMotion.getInstance(ctx).headRoll(10f,1.0f);
-			Thread.sleep(1000);
+			Thread.sleep(400);
 			RobotMotion.getInstance(ctx).headRoll(-10f,1.0f);
+			Thread.sleep(400);
 					
-		//	RobotMotion.getInstance(ctx).goBack(1, 1);
-			Thread.sleep(1000);
+			RobotMotion.getInstance(ctx).goForward(4, 1);
+			Thread.sleep(400);
+			RobotMotion.getInstance(ctx).goBack(4, 1);
+			
+			Thread.sleep(400);
+			
+		//	while(!isEnd)
+		//		Thread.sleep(200);
 		//	RobotMotion.getInstance(ctx).goFoward(1, 1);
 		}catch(Exception e){
 			e.printStackTrace();
@@ -85,10 +97,12 @@ public class StateTouchResponse implements IRobotState {
 	public void cleanUp(Context ctx) {
 
 		RobotMotion.getInstance(ctx).head(RobotMotion.HEAD_FRONT);
+		RobotMotion.getInstance(ctx).setLogoLEDDimming(0);
 	}
 
 	@Override
 	public void onChanged(Context ctx) {
+		isEnd=true;
 		// TODO Auto-generated method stub
 
 	}
