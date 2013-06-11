@@ -5,7 +5,6 @@ import java.io.File;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
 import android.speech.tts.TextToSpeech.OnUtteranceCompletedListener;
 import android.util.Log;
 import android.view.Menu;
@@ -167,6 +166,11 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 		
 	}
 	
+	private static FaceDetector fd;
+	public static FaceDetector getFaceDetector(){
+	    return fd;
+	}
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		
@@ -174,6 +178,9 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
 		
+		fd = (FaceDetector)findViewById(R.id.camera_surface);
+		fd.initialize(getFilesDir(), getAssets());
+
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 		
 		Intent it=getIntent();
@@ -195,7 +202,7 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 		
 					
 	}
-
+	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.

@@ -3,12 +3,15 @@ package com.kt.smartKibot;
 import android.content.Context;
 import android.util.Log;
 
-public class StateLookAround implements IRobotState {
+public class StateLookAround implements IRobotState, FaceDetector.OnFaceDetectListener {
 
 	
 	private static final String TAG="StateLookAround";
 	private boolean _DEBUG=true;
 	private volatile boolean isEnd=false;
+	private boolean faceDetected = false;
+	
+	
 	@Override
 	public void onStart(Context ctx) {
 		// TODO Auto-generated method stub
@@ -23,6 +26,11 @@ public class StateLookAround implements IRobotState {
 		
 		isEnd=false;
 		
+		FaceDetector fd = RobotActivity.getFaceDetector();
+		if (fd != null){
+		    fd.setStop(false);
+		    fd.setOnFaceDetectListener(this);
+		}
 	}
 
 	@Override
@@ -64,10 +72,19 @@ public class StateLookAround implements IRobotState {
 				int direction=(int)(Math.random()*2l )+RobotMotion.HEAD_LEFT;
 				Log.d(TAG,"head direction:"+direction);
 				RobotMotion.getInstance(ctx).headWithSpeed(direction,0.3f);
+
+				Thread.sleep(500);
+			}
+			if (faceDetected){
+			    RobotSpeech.getInstance(ctx).speak("안녕하세요? ",1.0f,1.1f);
+			    
+			    RobotMotion.getInstance(ctx).goForward(1, 1);
+
 				}
 				if(cnt==10) cnt=0;
 				Thread.sleep(200);
 				
+
 			}
 		
 		}
@@ -93,7 +110,7 @@ public class StateLookAround implements IRobotState {
 	public void cleanUp(Context ctx) {
 		// TODO Auto-generated method stub
 
-		//RobotMotion.getInstance(ctx).stopRMM();
+	    	//RobotMotion.getInstance(ctx).stopRMM();
 		RobotMotion.getInstance(ctx).stopAll();
 		RobotMotion.getInstance(ctx).headWithSpeed(RobotMotion.HEAD_FRONT,1.0f);
 		RobotMotion.getInstance(ctx).setLogoLEDDimming(0);
@@ -103,6 +120,14 @@ public class StateLookAround implements IRobotState {
 	public void onChanged(Context ctx) {
 		// TODO Auto-generated method stub
 		isEnd=true;
+	}
+	
+	@Override
+	public void onFaceDetect(Context ctx, FaceDetector faceDetector) {
+	    Log.i(TAG, "Face Detected");
+	    faceDetector.setStop(true);
+	    isEnd = true;
+	    faceDetected = true;
 	}
 
 }

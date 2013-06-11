@@ -41,24 +41,29 @@ public class NoiseCheckThread extends Thread {
 
 		while (isRecording) {
 			int bufferReadResult = audioRecord.read(buffer, 0, bufferSize);
-			
-			if(bufferReadResult==0) continue;
-			
+
 			psum=0;
 			if(count<300) count++;
 			if(++tcount==1000) tcount=1;
+
 			
-			for (int i = 0; i < bufferReadResult; i++) {
-				psum+=Math.abs(buffer[i]);
-			}
-			
-			dB=cal_dB(buffer,bufferReadResult);
-			pavg=(int)(psum/bufferReadResult);
-			tsum=(int)(tavg*(count-1))+pavg;
-			tavg=(int)(tsum/count);
-			if(pavg>threshold) {
-				Log.d("NoiseCheckThread","value("+tcount+"): "+pavg+", "+dB+","+bufferReadResult);
-				if(noiseListener!=null) noiseListener.onNoiseEvent(pavg,dB);
+			if (bufferReadResult != 0){
+        			psum=0;
+        			if(count<300) count++;
+        			if(++tcount==1000) tcount=1;
+        			
+        			for (int i = 0; i < bufferReadResult; i++) {
+        				psum+=Math.abs(buffer[i]);
+        			}
+        			
+        			dB=cal_dB(buffer,bufferReadResult);
+        			pavg=(int)(psum/bufferReadResult);
+        			tsum=(int)(tavg*(count-1))+pavg;
+        			tavg=(int)(tsum/count);
+        			if(pavg>threshold) {
+        				Log.d("NoiseCheckThread","value("+tcount+"): "+pavg+", "+dB+","+bufferReadResult);
+        				if(noiseListener!=null) noiseListener.onNoiseEvent(pavg,dB);
+        			}
 			}
 		}
 		
