@@ -82,4 +82,8 @@ public class AlarmAgent{
 		Toast.makeText(ctx,"alarms are registered!",Toast.LENGTH_SHORT).show();
 		
 	}
+	
+	private void writeLog(String text){
+	    
+	}
 }

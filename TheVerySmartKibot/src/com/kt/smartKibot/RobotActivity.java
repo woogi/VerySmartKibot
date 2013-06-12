@@ -178,7 +178,7 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
 		
-        	faceSurface = (FaceCameraSurface) findViewById(R.id.face_surface);
+        	faceSurface = (FaceCameraSurface) findViewById(R.id.camera_surface);
         	faceSurface.initializeAssets(getFilesDir(), getAssets());
         	
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
