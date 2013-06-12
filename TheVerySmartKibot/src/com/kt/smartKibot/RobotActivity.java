@@ -18,7 +18,7 @@ import android.widget.Toast;
 import com.kt.face.ScreenSaverOpenGLSurface;
 
 
-public class RobotActivity extends Activity implements OnUtteranceCompletedListener,IRobotEvtDelegator{
+public class RobotActivity extends Activity implements OnUtteranceCompletedListener{
 
 	private static final String TAG="RobotActivity";
 	private RobotBrain brain;
@@ -28,6 +28,21 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 	IRobotEvtHandler touchEvtHandler=null;
 	
 	
+	private void stopAll(){
+		
+		if (brain != null){ 
+			brain.finalize();
+		    brain=null;
+		}
+		
+		
+		
+		RobotSpeech.finish();
+		RobotMotion.finish();
+		RobotFace.finish();
+		
+		finish();
+	}
 
 	@Override
 	public void onHeadLongPressed() {
@@ -39,7 +54,7 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 		}
 		
 		TouchDetector.getInstance().sendEvent(this, TouchDetector.PARAM_HEAD_LONG_PRESSED);
-		finish();
+		stopAll();
 		
 	}
 
@@ -54,7 +69,7 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 		
 		
 	//	TouchDetector.getInstance().sendEvent(this, TouchDetector.PARAM_HEAD_PRESSED);
-		finish();
+		stopAll();
 	}
 
 	@Override
@@ -109,29 +124,6 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 
 
 	
-	@Override
-	public void installHandler(IRobotEvtHandler handler) {
-		// TODO Auto-generated method stub
-		touchEvtHandler=handler;
-	}
-
-	@Override
-	public void uninstallHandler() {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void start() {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void stop() {
-		// TODO Auto-generated method stub
-		
-	}
 
 	private static final String baseFacePath = "/system/media/robot/face/";
 	private static final String[] facePaths = { "/face15", "/face16", "/face14", "/face03",
@@ -166,9 +158,9 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 		
 	}
 	
-	private static FaceDetector fd;
-	public static FaceDetector getFaceDetector(){
-	    return fd;
+	private static FaceCameraSurface faceSurface;
+	public static FaceCameraSurface getFaceSurface(){
+	    return faceSurface;
 	}
 	
 	@Override
@@ -178,9 +170,9 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
 		
-		fd = (FaceDetector)findViewById(R.id.camera_surface);
-		fd.initialize(getFilesDir(), getAssets());
-
+    	faceSurface = (FaceCameraSurface) findViewById(R.id.face_surface);
+    	faceSurface.initializeAssets(getFilesDir(), getAssets());
+        	
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 		
 		Intent it=getIntent();
@@ -272,7 +264,9 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 				public boolean onTouch(View v, MotionEvent event) {
 					if (event.getAction() == MotionEvent.ACTION_DOWN) {
 						Log.d(TAG, "touch face to finish activity");
-						finish();
+						
+						stopAll();
+						
 					}
 					return true;
 				}
@@ -328,15 +322,8 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 	@Override
 	protected void onDestroy() {
 		// TODO Auto-generated method stub
-		Log.d(TAG,"onDestroy");
+		
 		clearAnimation();
-		
-		brain.finalize();
-		
-		RobotSpeech.finish();
-		RobotMotion.finish();
-		RobotFace.finish();
-		
 		super.onDestroy();
 	}
 

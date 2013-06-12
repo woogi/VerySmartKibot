@@ -10,7 +10,9 @@ import android.util.Log;
 
 public class DayTimeBehavior extends RobotBehavior{
 
-	static final String TAG="DayTimeBehavior";
+	private static final String TAG="DayTimeBehavior";
+	
+	private volatile boolean isEnd=false;
 	
 	
 	public DayTimeBehavior(ArrayList<RobotLog> logHistory){
@@ -33,6 +35,8 @@ public class DayTimeBehavior extends RobotBehavior{
 	@Override
 	public void handle(Context ctx, RobotEvent evt) {
 		// TODO Auto-generated method stub
+		
+		if(isEnd) return;
 		
 		Time _t=new Time();
 		_t.setToNow();
@@ -171,7 +175,11 @@ public class DayTimeBehavior extends RobotBehavior{
 					}
 				}
 		    break;
-			
+                	case RobotEvent.EVT_FACE_DETECTION:
+                	    // TODO: nothing yet to handle this event (not needed for now)
+                	    Log.i(TAG, "Face Detection Event");
+                	    break;
+		    
 			case RobotEvent.EVT_BATTERY_STATE:
 				switch(evt.getParam1())
 				{
@@ -248,6 +256,9 @@ public class DayTimeBehavior extends RobotBehavior{
 	@Override
 	public void onStop(Context ctx) {
 		// TODO Auto-generated method stub
+		
+		isEnd=true;
+		
 		RobotTimer.getInstance().stop();
 		
 		Iterator<IRobotState> it=history_state.iterator();
@@ -271,6 +282,9 @@ public class DayTimeBehavior extends RobotBehavior{
 		// TODO Auto-generated method stub
 		
 		Log.d(TAG,"state end:"+state);
+		
+		
+		if(isEnd) return;
 		
 		if(StateTouchResponse.class.isInstance(state) || StateEvasion.class.isInstance(state)){
 			/*

@@ -3,7 +3,7 @@ package com.kt.smartKibot;
 import android.content.Context;
 import android.util.Log;
 
-public class StateLookAround implements IRobotState, FaceDetector.OnFaceDetectListener {
+public class StateLookAround implements IRobotState{
 
 	
 	private static final String TAG="StateLookAround";
@@ -26,11 +26,8 @@ public class StateLookAround implements IRobotState, FaceDetector.OnFaceDetectLi
 		
 		isEnd=false;
 		
-		FaceDetector fd = RobotActivity.getFaceDetector();
-		if (fd != null){
-		    fd.setStop(false);
-		    fd.setOnFaceDetectListener(this);
-		}
+	FaceDetector.getInstance().start();
+	
 	}
 
 	@Override
@@ -75,7 +72,7 @@ public class StateLookAround implements IRobotState, FaceDetector.OnFaceDetectLi
 				RobotMotion.getInstance(ctx).headWithSpeed(direction,0.1f);
 				Thread.sleep(500);
 				
-			if (faceDetected){
+			if (FaceDetector.hasDetectedAFace()) {
 			    RobotSpeech.getInstance(ctx).speak("안녕!",1.0f,1.1f);
 			    
 			    RobotMotion.getInstance(ctx).goForward(1, 5);
@@ -113,14 +110,8 @@ public class StateLookAround implements IRobotState, FaceDetector.OnFaceDetectLi
 
 	@Override
 	public void cleanUp(Context ctx) {
-		// TODO Auto-generated method stub
-
-	    	//RobotMotion.getInstance(ctx).stopRMM();
-		FaceDetector fd = RobotActivity.getFaceDetector();
-		if (fd != null){
-		    fd.setStop(true);
-		    //fd.setOnFaceDetectListener(this);
-		}
+		
+		FaceDetector.getInstance().stop();
 		RobotMotion.getInstance(ctx).stopAll();
 		RobotMotion.getInstance(ctx).headWithSpeed(RobotMotion.HEAD_FRONT,1.0f);
 		RobotMotion.getInstance(ctx).setLogoLEDDimming(0);
@@ -132,12 +123,5 @@ public class StateLookAround implements IRobotState, FaceDetector.OnFaceDetectLi
 		isEnd=true;
 	}
 	
-	@Override
-	public void onFaceDetect(Context ctx, FaceDetector faceDetector) {
-	    Log.i(TAG, "Face Detected");
-	    faceDetector.setStop(true);
-	    isEnd = true;
-	    faceDetected = true;
-	}
 
 }

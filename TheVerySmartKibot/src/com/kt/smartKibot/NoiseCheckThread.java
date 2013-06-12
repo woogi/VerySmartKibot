@@ -46,7 +46,6 @@ public class NoiseCheckThread extends Thread {
 			if(count<300) count++;
 			if(++tcount==1000) tcount=1;
 
-			
 			if (bufferReadResult != 0){
         			psum=0;
         			if(count<300) count++;

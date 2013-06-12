@@ -3,13 +3,13 @@ package com.kt.smartKibot;
 import java.util.ArrayList;
 
 import android.content.Context;
-import android.os.Handler;
-import android.os.Looper;
-import android.os.Message;
+import android.util.Log;
 
 
 
 public class RobotBrain implements IRobotEvtHandler{
+	
+	private static final String TAG="RobotBrain";
 
 	private Context ctx;
 	private ArrayList<RobotBehavior> history_behavior;
@@ -51,6 +51,8 @@ public class RobotBrain implements IRobotEvtHandler{
 	
 	public void finalize(){
 		
+		Log.d(TAG,"brain finalize");
+		
 		batteryChecker.stop();
 		batteryChecker=null;
 		
@@ -75,6 +77,9 @@ public class RobotBrain implements IRobotEvtHandler{
 		//noise detector handler 등록
 		NoiseDetector.getInstance().installHandler(this);
 		
+		//face detector handler
+        	FaceDetector.getInstance().installHandler(this);
+
 		//touch event handler 등록 
 		TouchDetector.getInstance().installHandler(this);
 		TouchDetector.getInstance().start();
