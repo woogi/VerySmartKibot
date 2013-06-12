@@ -46,7 +46,7 @@ public class RobotMotion {
 	
 	// 속도
 	private static int[] s_spds3 = { 40, 50, 60, 70, 80 };
-	private static float[] s_spds = { 0.06f, 0.09f, 0.12f, 0.15f, 0.18f };
+	private static float[] s_spds = { 0.01f,0.06f, 0.09f, 0.12f, 0.15f, 0.18f };
 	private static float[] s_rots = { 40.0f, 50.0f, 60.0f, 70.0f, 80.0f };
 	//public final int lengthToTime = 250000;
 	//public final int lengthToTime = 100000;
@@ -399,8 +399,8 @@ public class RobotMotion {
 			Log.i(TAG, "turnLeft");
 		if (_robotManager == null)
 			return;
-		_robotManager.stopWheel();
-		head(HEAD_LEFT);
+	//	_robotManager.stopWheel();
+	//	head(HEAD_LEFT);
 		_robotManager.moveWheel(0.0f, -s_rots[speed - 1]);
 	}
 
@@ -467,10 +467,10 @@ public class RobotMotion {
 			Log.i(TAG, "turnRight");
 		if (_robotManager == null)
 			return;
-		_robotManager.stopWheel();
-		head(HEAD_RIGHT);
+	//	_robotManager.stopWheel();
+		//head(HEAD_RIGHT);
 		_robotManager.moveWheel(0.0f, s_rots[speed - 1]);
-		_robotManager.moveHome();
+		//_robotManager.moveHome();
 	}
 
 	/**

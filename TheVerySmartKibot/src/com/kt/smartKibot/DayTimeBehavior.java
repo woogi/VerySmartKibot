@@ -1,6 +1,7 @@
 package com.kt.smartKibot;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.ListIterator;
 
 import android.content.Context;
@@ -42,7 +43,7 @@ public class DayTimeBehavior extends RobotBehavior{
 			case RobotEvent.EVT_TIMER:
 				if(StateGreeting.class.isInstance(getCurrentState()))
 				{
-					if(evt.getParam1()==3 /*test*/) 
+					if(evt.getParam1()==2 /*test*/) 
 					{
 						changeState(new StateSleeping());
 						return;
@@ -52,7 +53,7 @@ public class DayTimeBehavior extends RobotBehavior{
 				
 				if(StateWandering.class.isInstance(getCurrentState()))
 				{
-					if(evt.getParam1()==4) 
+					if(evt.getParam1()==2) 
 					{
 						changeState(new StateSleeping());
 						return;
@@ -88,7 +89,7 @@ public class DayTimeBehavior extends RobotBehavior{
 				
 				if(StateSleeping.class.isInstance(getCurrentState()))
 				{
-					if(evt.getParam1()==12)
+					if(evt.getParam1()==2)
 					{
 						int rand=(int)(Math.random()*2);
 						if(rand==0){
@@ -195,13 +196,17 @@ public class DayTimeBehavior extends RobotBehavior{
 			{
 			
 				int _cntTouch=1;
-				ListIterator<RobotLog> it=history_log.listIterator(history_log.size());
 				
+				
+				if(evt.getTimeStamp().toMillis(false) +1000*2 <currentTime) //2초이내 이벤트 는 무시
+						return;
+				
+				ListIterator<RobotLog> it=history_log.listIterator(history_log.size());
 				while(it.hasPrevious())
 				{
 					RobotLog log=it.previous();
 					
-					if(log.getEvent().getTimeStamp().toMillis(false) +1000*60*2 <currentTime) /* 2분 이내 내역만*/
+					if(log.getEvent().getTimeStamp().toMillis(false) +1000*60*2 <currentTime) // 2분 이내 내역만
 						break;
 					
 					
@@ -212,8 +217,9 @@ public class DayTimeBehavior extends RobotBehavior{
 					
 				Log.d(TAG,"total count of body touch:"+_cntTouch +"in 2 min.");
 				
-				if(_cntTouch<6){
+				if(_cntTouch</*6*/100000){
 				changeState(new StateTouchResponse(evt.getParam1(), history_log));
+			//	changeState(new StateTouchResponse(evt.getParam1(), history_log));
 				}else{
 				changeState(new StateEvasion(StateEvasion.CAUSE_TOUCH_TOO_MUCH));
 				}
@@ -244,7 +250,16 @@ public class DayTimeBehavior extends RobotBehavior{
 		// TODO Auto-generated method stub
 		RobotTimer.getInstance().stop();
 		
-		getCurrentState().onChanged(ctx);
+		Iterator<IRobotState> it=history_state.iterator();
+		
+		while(it.hasNext())
+		{
+			it.next().onChanged(ctx);
+		}
+		
+		
+		
+		//getCurrentState().onChanged(ctx);
 		
 	}
 
@@ -258,6 +273,7 @@ public class DayTimeBehavior extends RobotBehavior{
 		Log.d(TAG,"state end:"+state);
 		
 		if(StateTouchResponse.class.isInstance(state) || StateEvasion.class.isInstance(state)){
+			/*
 			IRobotState lastState=null;
 			
 			ListIterator<RobotLog> it=history_log.listIterator(history_log.size());
@@ -275,6 +291,9 @@ public class DayTimeBehavior extends RobotBehavior{
 			if(lastState!=null){
 				changeState(lastState);
 			}
+			*/
+			
+			changeState(new StateSleeping());
 			return;
 		}
 		

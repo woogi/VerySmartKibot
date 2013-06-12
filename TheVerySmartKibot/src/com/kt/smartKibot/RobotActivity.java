@@ -330,6 +330,7 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 		// TODO Auto-generated method stub
 		Log.d(TAG,"onDestroy");
 		clearAnimation();
+		
 		brain.finalize();
 		
 		RobotSpeech.finish();

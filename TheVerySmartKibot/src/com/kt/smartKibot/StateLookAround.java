@@ -18,10 +18,10 @@ public class StateLookAround implements IRobotState, FaceDetector.OnFaceDetectLi
 		if(_DEBUG)
 		{
 			
-			RobotFace.getInstance(ctx).change(RobotFace.MODE_ATTENTION,TAG);
+			RobotFace.getInstance(ctx).change(RobotFace.MODE_SERIOUS,TAG);
 		}
 		else{
-			RobotFace.getInstance(ctx).change(RobotFace.MODE_ATTENTION);
+			RobotFace.getInstance(ctx).change(RobotFace.MODE_SERIOUS );
 		}
 		
 		isEnd=false;
@@ -71,11 +71,12 @@ public class StateLookAround implements IRobotState, FaceDetector.OnFaceDetectLi
 				if(cnt==10){
 				int direction=(int)(Math.random()*2l )+RobotMotion.HEAD_LEFT;
 				Log.d(TAG,"head direction:"+direction);
-				RobotMotion.getInstance(ctx).headWithSpeed(direction,0.3f);
+				//RobotMotion.getInstance(ctx).headWithSpeed(direction,0.3f);
+				RobotMotion.getInstance(ctx).headWithSpeed(direction,0.1f);
 				Thread.sleep(500);
 				
 			if (faceDetected){
-			    RobotSpeech.getInstance(ctx).speak("찾았다!",1.0f,1.1f);
+			    RobotSpeech.getInstance(ctx).speak("안녕!",1.0f,1.1f);
 			    
 			    RobotMotion.getInstance(ctx).goForward(1, 5);
 			    
@@ -84,6 +85,7 @@ public class StateLookAround implements IRobotState, FaceDetector.OnFaceDetectLi
 				}
 			
 			if(cnt==10) cnt=0;
+			
 			Thread.sleep(200);
 				
 			}
@@ -114,6 +116,11 @@ public class StateLookAround implements IRobotState, FaceDetector.OnFaceDetectLi
 		// TODO Auto-generated method stub
 
 	    	//RobotMotion.getInstance(ctx).stopRMM();
+		FaceDetector fd = RobotActivity.getFaceDetector();
+		if (fd != null){
+		    fd.setStop(true);
+		    //fd.setOnFaceDetectListener(this);
+		}
 		RobotMotion.getInstance(ctx).stopAll();
 		RobotMotion.getInstance(ctx).headWithSpeed(RobotMotion.HEAD_FRONT,1.0f);
 		RobotMotion.getInstance(ctx).setLogoLEDDimming(0);

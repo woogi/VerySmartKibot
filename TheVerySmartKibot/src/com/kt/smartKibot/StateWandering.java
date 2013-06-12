@@ -38,7 +38,7 @@ public class StateWandering implements IRobotState {
 		}
 			
 		try{
-			RobotMotion.getInstance(ctx).startFreeMove();
+		//	RobotMotion.getInstance(ctx).startFreeMove();
 			RobotMotion.getInstance(ctx).setLogoLEDDimming(20);
 			
 			while(!isEnd){
@@ -47,15 +47,38 @@ public class StateWandering implements IRobotState {
 				
 				switch(rand){
 				
-				case 2: RobotSpeech.getInstance(ctx).speak("어디있어?",1.0f,1.3f);
-				break;
-				case 3: RobotSpeech.getInstance(ctx).speak("어디있니?",1.0f,1.3f);
-				break;
-				case 4: RobotSpeech.getInstance(ctx).speak("나랑 놀자!",1.0f,1.3f);
-				break;
+					case 2: RobotSpeech.getInstance(ctx).speak("어디있어?",1.0f,1.3f);
+					break;
+					case 3: RobotSpeech.getInstance(ctx).speak("어디있니?",1.0f,1.3f);
+					break;
+					case 4: RobotSpeech.getInstance(ctx).speak("나랑 놀자!",1.0f,1.3f);
+					break;
+					
 				}
 				
-				Thread.sleep(200);}
+				
+				Thread.sleep(200);
+				
+				rand=(int)(Math.random()*6l);
+			
+				switch(rand){
+					case 0:RobotMotion.getInstance(ctx).goForward(1, 5);
+					break;
+					case 1:RobotMotion.getInstance(ctx).turnLeft(2);
+					break;
+					case 2:RobotMotion.getInstance(ctx).turnRight(2);
+					break;
+					case 3:RobotMotion.getInstance(ctx).goBack(1, 5);
+					break;
+					case 4:RobotMotion.getInstance(ctx).headWithSpeed(RobotMotion.HEAD_LEFT,0.3f);
+					break;
+					case 5:RobotMotion.getInstance(ctx).headWithSpeed(RobotMotion.HEAD_RIGHT,0.3f);
+					break;
+				}
+				
+				Thread.sleep(200);
+				
+			}//:end of while
 		
 		}
 		catch(Exception e){}
@@ -64,6 +87,7 @@ public class StateWandering implements IRobotState {
 	@Override
 	public void cleanUp(Context ctx) {
 		RobotMotion.getInstance(ctx).stopFreeMove();
+		RobotMotion.getInstance(ctx).stopAll();
 		RobotMotion.getInstance(ctx).offAllLed();
 		RobotMotion.getInstance(ctx).setLogoLEDDimming(0);
 	}
