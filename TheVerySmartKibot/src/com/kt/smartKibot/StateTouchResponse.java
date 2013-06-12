@@ -21,6 +21,8 @@ public class StateTouchResponse implements IRobotState {
 	public void onStart(Context ctx) {
 		// TODO Auto-generated method stub
 		
+		RobotMotion.getInstance(ctx).stopAll();
+		
 		isEnd=false;
 		switch(touchWhere){
 			case TouchDetector.PARAM_LEFT_EAR_PATTED:
@@ -54,33 +56,53 @@ public class StateTouchResponse implements IRobotState {
 	public void doAction(Context ctx) {
 		// TODO Auto-generated method stub
 		
-		
-		int rand=(int) (Math.random()*3l);
-		
-		
-		switch(rand){
-		
-			case 0:RobotSpeech.getInstance(ctx).speak("아이 간지러워",1.1f,1.1f);
-			break;
+			int rand=(int) (Math.random()*0l);
 			
-			case 1:RobotSpeech.getInstance(ctx).speak("하하하,",1.2f,1.1f);
-			break;
 			
-			case 2:RobotSpeech.getInstance(ctx).speak("아이 좋아",1.2f,1.1f);
-			break;
-		}
+			switch(rand){
+			
+				case 0:RobotSpeech.getInstance(ctx).speak("하!하!",1.2f,1.1f);
+				break;
+				
+				case 1:RobotSpeech.getInstance(ctx).speak("크크",1.2f,1.1f);
+				break;
+				
+				case 2:RobotSpeech.getInstance(ctx).speak("꺄르르",1.2f,1.1f);
+				break;
+			}
+		
 
 		try{
 			
+		switch(touchWhere){
+			case TouchDetector.PARAM_LEFT_EAR_PATTED:
+			case TouchDetector.PARAM_LEFT_FOOT_PRESSED:
+				
 			RobotMotion.getInstance(ctx).headRoll(10f,1.0f);
+			Thread.sleep(100);
+			RobotMotion.getInstance(ctx).turnLeft(2);
 			Thread.sleep(400);
-			RobotMotion.getInstance(ctx).headRoll(-10f,1.0f);
-			Thread.sleep(400);
-					
-			RobotMotion.getInstance(ctx).goForward(4, 1);
-			Thread.sleep(400);
-			RobotMotion.getInstance(ctx).goBack(4, 1);
+			break;
 			
+			case TouchDetector.PARAM_RIGHT_EAR_PATTED:
+			case TouchDetector.PARAM_RIGHT_FOOT_PRESSED:
+			RobotMotion.getInstance(ctx).headRoll(-10f,1.0f);
+			Thread.sleep(100);
+			RobotMotion.getInstance(ctx).turnRight(2);
+			Thread.sleep(400);
+			break;
+		}
+		
+			RobotMotion.getInstance(ctx).goForward(2, 5);
+			Thread.sleep(400);
+			
+			RobotSpeech.getInstance(ctx).speak("간지러워",1.1f,1.1f);
+			
+			
+			RobotMotion.getInstance(ctx).headWithSpeed(RobotMotion.HEAD_LEFT,0.2f);
+			
+			Thread.sleep(400);
+			RobotMotion.getInstance(ctx).headWithSpeed(RobotMotion.HEAD_RIGHT,0.2f);
 			Thread.sleep(400);
 			
 		//	while(!isEnd)
@@ -97,6 +119,7 @@ public class StateTouchResponse implements IRobotState {
 	public void cleanUp(Context ctx) {
 
 		RobotMotion.getInstance(ctx).head(RobotMotion.HEAD_FRONT);
+		RobotMotion.getInstance(ctx).stopAll();
 		RobotMotion.getInstance(ctx).setLogoLEDDimming(0);
 	}
 
