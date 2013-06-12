@@ -29,7 +29,6 @@ public class StateLookAround implements IRobotState {
 	// TODO Auto-generated method stub
 
 	int rand = (int) (Math.random() * 5);
-	int cnt = 0;
 
 	switch (rand) {
 
@@ -55,6 +54,7 @@ public class StateLookAround implements IRobotState {
 
 	try {
 
+		int cnt = 0;
 	    while (!isEnd) {
 		// RobotMotion.getInstance(ctx).led(0,100,3);
 		++cnt;
@@ -62,17 +62,20 @@ public class StateLookAround implements IRobotState {
 		    int direction = (int) (Math.random() * 2l)
 			    + RobotMotion.HEAD_LEFT;
 		    Log.d(TAG, "head direction:" + direction);
-		    RobotMotion.getInstance(ctx).headWithSpeed(direction, 0.3f);
-		    Thread.sleep(500);
+		    RobotMotion.getInstance(ctx).headWithSpeed(direction, 0.1f);
 		}
+		
+		/*
 		if (FaceDetector.hasDetectedAFace()) {
 		    isEnd = true;
 		    RobotSpeech.getInstance(ctx).speak("안녕하세요? ", 1.0f, 1.1f);
 		    RobotMotion.getInstance(ctx).goForward(1, 1);
 		}
+		*/
+		
 		if (cnt == 10)
 		    cnt = 0;
-		Thread.sleep(200);
+			Thread.sleep(200);
 
 	    }
 

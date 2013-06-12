@@ -42,7 +42,7 @@ public class DayTimeBehavior extends RobotBehavior{
 			case RobotEvent.EVT_TIMER:
 				if(StateGreeting.class.isInstance(getCurrentState()))
 				{
-					if(evt.getParam1()==3 /*test*/) 
+					if(evt.getParam1()==2 /*test*/) 
 					{
 						changeState(new StateSleeping());
 						return;
@@ -52,7 +52,7 @@ public class DayTimeBehavior extends RobotBehavior{
 				
 				if(StateWandering.class.isInstance(getCurrentState()))
 				{
-					if(evt.getParam1()==4) 
+					if(evt.getParam1()==2) 
 					{
 						changeState(new StateSleeping());
 						return;
@@ -88,7 +88,7 @@ public class DayTimeBehavior extends RobotBehavior{
 				
 				if(StateSleeping.class.isInstance(getCurrentState()))
 				{
-					if(evt.getParam1()==12)
+					if(evt.getParam1()==2)
 					{
 						int rand=(int)(Math.random()*2);
 						if(rand==0){
@@ -170,10 +170,6 @@ public class DayTimeBehavior extends RobotBehavior{
 					}
 				}
 		    break;
-                	case RobotEvent.EVT_FACE_DETECTION:
-                	    // TODO: nothing yet to handle this event (not needed for now)
-                	    Log.i(TAG, "Face Detection Event");
-                	    break;
 		    
 			case RobotEvent.EVT_BATTERY_STATE:
 				switch(evt.getParam1())
@@ -199,6 +195,10 @@ public class DayTimeBehavior extends RobotBehavior{
 			{
 			
 				int _cntTouch=1;
+				
+				if(evt.getTimeStamp().toMillis(false) +1000*2 <currentTime) //2초이내 이벤트 는 무시
+					return;
+				
 				ListIterator<RobotLog> it=history_log.listIterator(history_log.size());
 				
 				while(it.hasPrevious())
@@ -222,6 +222,17 @@ public class DayTimeBehavior extends RobotBehavior{
 				changeState(new StateEvasion(StateEvasion.CAUSE_TOUCH_TOO_MUCH));
 				}
 			}
+			break;
+			
+			
+			case RobotEvent.EVT_FACE_DETECTION:
+			{
+            	Log.d(TAG, "Face Detection Event");
+            	
+            	changeState(new StateGreeting());
+            	    
+			}
+			break;
 				
 		}//end of switch
 	}//end of handle
@@ -262,6 +273,7 @@ public class DayTimeBehavior extends RobotBehavior{
 		Log.d(TAG,"state end:"+state);
 		
 		if(StateTouchResponse.class.isInstance(state) || StateEvasion.class.isInstance(state)){
+			/*
 			IRobotState lastState=null;
 			
 			ListIterator<RobotLog> it=history_log.listIterator(history_log.size());
@@ -279,6 +291,9 @@ public class DayTimeBehavior extends RobotBehavior{
 			if(lastState!=null){
 				changeState(lastState);
 			}
+			*/
+			
+			changeState(new StateSleeping());
 			return;
 		}
 		
