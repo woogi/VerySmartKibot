@@ -9,7 +9,6 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
-import android.widget.Toast;
 
 public class AlarmAgent{
 
@@ -79,11 +78,8 @@ public class AlarmAgent{
 		ca.add(Calendar.SECOND,35);
 		setAlarm(ca.getTime(),pi,true);
 		
-		Toast.makeText(ctx,"alarms are registered!",Toast.LENGTH_SHORT).show();
+		// Toast.makeText(ctx,"alarms are registered!",Toast.LENGTH_SHORT).show();
+		RobotActivity.writeLog("alarms are registered!");
 		
-	}
-	
-	private void writeLog(String text){
-	    
 	}
 }

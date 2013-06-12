@@ -13,7 +13,8 @@ import android.view.View;
 import android.view.View.OnTouchListener;
 import android.view.WindowManager;
 import android.widget.LinearLayout;
-import android.widget.Toast;
+import android.widget.ScrollView;
+import android.widget.TextView;
 
 import com.kt.face.ScreenSaverOpenGLSurface;
 
@@ -26,7 +27,8 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 	private boolean DEBUG=true;
 	private int currentFaceMode=RobotFace.MODE_UNKNOWN;
 	IRobotEvtHandler touchEvtHandler=null;
-	
+	private static FaceCameraSurface faceSurface;
+	private static TextView logView;
 	
 
 	@Override
@@ -35,7 +37,8 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 		//super.onHeadLongPressed();
 		if(DEBUG)
 		{
-			Toast.makeText(getApplicationContext(),"head long pressed",Toast.LENGTH_SHORT).show();
+			// Toast.makeText(getApplicationContext(),"head long pressed",Toast.LENGTH_SHORT).show();
+			writeLog("head long pressed");
 		}
 		
 		TouchDetector.getInstance().sendEvent(this, TouchDetector.PARAM_HEAD_LONG_PRESSED);
@@ -49,7 +52,8 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 		//super.onHeadPressed();
 		if(DEBUG)
 		{
-			Toast.makeText(getApplicationContext(),"head pressed",Toast.LENGTH_SHORT).show();
+			// Toast.makeText(getApplicationContext(),"head pressed",Toast.LENGTH_SHORT).show();
+			writeLog("head pressed");
 		}
 		
 		
@@ -63,7 +67,8 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 		//super.onLeftEarPatted();
 		if(DEBUG)
 		{
-			Toast.makeText(getApplicationContext(),"left ear patted",Toast.LENGTH_SHORT).show();
+			// Toast.makeText(getApplicationContext(),"left ear patted",Toast.LENGTH_SHORT).show();
+			writeLog("left ear patted");
 		}
 		
 		
@@ -76,7 +81,8 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 		//super.onRightEarPatted();
 		if(DEBUG)
 		{
-			Toast.makeText(getApplicationContext(),"right ear patted",Toast.LENGTH_SHORT).show();
+			// Toast.makeText(getApplicationContext(),"right ear patted",Toast.LENGTH_SHORT).show();
+			writeLog("right ear patted");
 		}
 		
 		TouchDetector.getInstance().sendEvent(this, TouchDetector.PARAM_RIGHT_EAR_PATTED);
@@ -89,7 +95,8 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 		//super.onLeftFootPressed();
 		if(DEBUG)
 		{
-			Toast.makeText(getApplicationContext(),"left foot pressed",Toast.LENGTH_SHORT).show();
+			// Toast.makeText(getApplicationContext(),"left foot pressed",Toast.LENGTH_SHORT).show();
+			writeLog("left foot pressed");
 		}
 		
 		TouchDetector.getInstance().sendEvent(this, TouchDetector.PARAM_LEFT_FOOT_PRESSED);
@@ -101,7 +108,8 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 		//super.onRightFootPressed();
 		if(DEBUG)
 		{
-			Toast.makeText(getApplicationContext(),"right foot pressed",Toast.LENGTH_SHORT).show();
+			// Toast.makeText(getApplicationContext(),"right foot pressed",Toast.LENGTH_SHORT).show();
+			writeLog("right foot pressed");
 		}
 	
 		TouchDetector.getInstance().sendEvent(this, TouchDetector.PARAM_RIGHT_FOOT_PRESSED);
@@ -166,11 +174,6 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 		
 	}
 	
-	private static FaceCameraSurface faceSurface;
-	public static FaceCameraSurface getFaceSurface(){
-	    return faceSurface;
-	}
-	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		
@@ -180,6 +183,9 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 		
         	faceSurface = (FaceCameraSurface) findViewById(R.id.camera_surface);
         	faceSurface.initializeAssets(getFilesDir(), getAssets());
+        	
+    	    	logView = (TextView) findViewById(R.id.log_view);
+        	((ScrollView) logView.getParent()).setVerticalScrollBarEnabled(false);
         	
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 		
@@ -294,8 +300,10 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 				Log.i(TAG, "mSurface start :: " + sAniFolder[0]);
 		}
 		
-		if(message!=null)
-			Toast.makeText(this,message,Toast.LENGTH_SHORT).show();
+		if(message!=null) {
+			// Toast.makeText(this,message,Toast.LENGTH_SHORT).show();
+			writeLog(message);
+		}
 		
 		return true;
 	}
@@ -383,5 +391,13 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 		}
 	}
 	
+	public static FaceCameraSurface getFaceSurface(){
+	    return faceSurface;
+	}
+	
+	 public static void writeLog(String text){
+	    logView.append(text + "\n");
+	    ((ScrollView) logView.getParent()).fullScroll(View.FOCUS_DOWN);
+	}
 
 }
