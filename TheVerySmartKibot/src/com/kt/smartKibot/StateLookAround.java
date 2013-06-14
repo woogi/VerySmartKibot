@@ -26,9 +26,8 @@ public class StateLookAround implements IRobotState{
 		
 		isEnd=false;
 		
-	FaceDetector.getInstance().start();
-	
-	}
+		FaceDetector.getInstance().start();
+    }
 
 	@Override
 	public void doAction(Context ctx) {
@@ -56,7 +55,7 @@ public class StateLookAround implements IRobotState{
 		//	break;
 		}
 		
-		
+
 		RobotMotion.getInstance(ctx).setLogoLEDDimming(2);
 		
 		try{
@@ -72,40 +71,29 @@ public class StateLookAround implements IRobotState{
 				RobotMotion.getInstance(ctx).headWithSpeed(direction,0.1f);
 				Thread.sleep(500);
 				
-			if (FaceDetector.hasDetectedAFace()) {
-			    RobotSpeech.getInstance(ctx).speak("안녕!",1.0f,1.1f);
-			    
-			    RobotMotion.getInstance(ctx).goForward(1, 5);
-			    
-			    isEnd=true;
-
+				if (FaceDetector.hasDetectedAFace()) {
+				    RobotSpeech.getInstance(ctx).speak("안녕!",1.0f,1.1f);
+				    
+				    RobotMotion.getInstance(ctx).goForward(1, 5);
+				    
+				    isEnd=true;
+	
 				}
 			
-			if(cnt==10) cnt=0;
-			
-			Thread.sleep(200);
+				if(cnt==10) cnt=0;
+				}
 				
-			}
+				Thread.sleep(200);
 
 			}
 		
-		}
-		catch(Exception e){e.printStackTrace();}
 		
-		
-		/*
-		
-		try{
-		
-			RobotMotion.getInstance(ctx).playRMM("lookAround.rmm");
-			while(!isEnd)
-			{
-				Thread.sleep(100);
-			}
-			
-		}
-		catch(Exception e){e.printStackTrace();}
-		*/
+		if (cnt == 10) cnt = 0;
+			Thread.sleep(200);
+	 }
+	catch (Exception e) {
+	    e.printStackTrace();
+	}
 	}
 
 	@Override

@@ -376,22 +376,14 @@ public class RobotMotion {
 	}
 	
 
+
 	/**
 	 * 왼쪽으로 회전하는 함수
 	 * 
 	 * @param speed
-	 * @param speakOn
-	 * @param faceOn
 	 */
-	public void turnLeft(int speed, boolean speakOn, boolean faceOn) {
+	public void turnLeft(int speed) {
 		if (curWheelState != TURN_LEFT) {
-			if (speakOn) {
-				// speakMsg("왼쪽으로!");
-//				playBGM(R.raw.bgm15);
-			}
-			if (faceOn) {
-//				faceOn(KibotVar.EMO_MODE_FUN);
-			}
 			curWheelState = TURN_LEFT;
 		}
 
@@ -402,15 +394,6 @@ public class RobotMotion {
 	//	_robotManager.stopWheel();
 	//	head(HEAD_LEFT);
 		_robotManager.moveWheel(0.0f, -s_rots[speed - 1]);
-	}
-
-	/**
-	 * 왼쪽으로 회전하는 함수
-	 * 
-	 * @param speed
-	 */
-	public void turnLeft(int speed) {
-		turnLeft(speed, true, true);
 	}
 
 	/**
@@ -435,14 +418,6 @@ public class RobotMotion {
 		stopWheel();
 	}
 
-	/**
-	 * 왼쪽으로 회전하는 함수
-	 * 
-	 * @param speed
-	 */
-	public void turnLeftWithoutSpeakAndFace(int speed) {
-		turnLeft(speed, false, false);
-	}
 
 
 	/**
@@ -706,7 +681,7 @@ public class RobotMotion {
 	 * @param dir
 	 */
 	public void headWithSpeed(int dir,float speed) {
-		float HeadRollSpeed = 0.7f;
+		float HeadRollSpeed = 0.7f;/* 0.1~1.0*/
 		HeadRollSpeed=speed;
 
 		switch (dir) {

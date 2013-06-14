@@ -38,8 +38,7 @@ public class StateWandering implements IRobotState {
 		}
 			
 		try{
-		//	RobotMotion.getInstance(ctx).startFreeMove();
-			RobotMotion.getInstance(ctx).setLogoLEDDimming(20);
+			RobotMotion.getInstance(ctx).setLogoLEDDimming(2);
 			
 			while(!isEnd){
 				
@@ -62,18 +61,18 @@ public class StateWandering implements IRobotState {
 				rand=(int)(Math.random()*6l);
 			
 				switch(rand){
-					case 0:RobotMotion.getInstance(ctx).goForward(1, 5);
-					break;
-					case 1:RobotMotion.getInstance(ctx).turnLeft(2);
-					break;
-					case 2:RobotMotion.getInstance(ctx).turnRight(2);
-					break;
-					case 3:RobotMotion.getInstance(ctx).goBack(1, 5);
-					break;
-					case 4:RobotMotion.getInstance(ctx).headWithSpeed(RobotMotion.HEAD_LEFT,0.3f);
-					break;
-					case 5:RobotMotion.getInstance(ctx).headWithSpeed(RobotMotion.HEAD_RIGHT,0.3f);
-					break;
+				case 0:RobotMotion.getInstance(ctx).goForward(1, 5);
+				break;
+				case 1:RobotMotion.getInstance(ctx).turnLeft(2);
+				break;
+				case 2:RobotMotion.getInstance(ctx).turnRight(2);
+				break;
+				case 3:RobotMotion.getInstance(ctx).goBack(1, 5);
+				break;
+				case 4:RobotMotion.getInstance(ctx).headWithSpeed(RobotMotion.HEAD_LEFT,0.3f);
+				break;
+				case 5:RobotMotion.getInstance(ctx).headWithSpeed(RobotMotion.HEAD_RIGHT,0.3f);
+				break;
 				}
 				
 				Thread.sleep(200);
@@ -81,7 +80,9 @@ public class StateWandering implements IRobotState {
 			}//:end of while
 		
 		}
-		catch(Exception e){}
+		catch(Exception e){
+			e.printStackTrace();
+		}
 	}
 
 	@Override

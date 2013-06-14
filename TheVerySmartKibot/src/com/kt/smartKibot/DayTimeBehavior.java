@@ -175,10 +175,6 @@ public class DayTimeBehavior extends RobotBehavior{
 					}
 				}
 		    break;
-                	case RobotEvent.EVT_FACE_DETECTION:
-                	    // TODO: nothing yet to handle this event (not needed for now)
-                	    Log.i(TAG, "Face Detection Event");
-                	    break;
 		    
 			case RobotEvent.EVT_BATTERY_STATE:
 				switch(evt.getParam1())
@@ -232,6 +228,17 @@ public class DayTimeBehavior extends RobotBehavior{
 				changeState(new StateEvasion(StateEvasion.CAUSE_TOUCH_TOO_MUCH));
 				}
 			}
+			break;
+			
+			
+			case RobotEvent.EVT_FACE_DETECTION:
+			{
+            	Log.d(TAG, "Face Detection Event");
+            	
+            	changeState(new StateGreeting());
+            	    
+			}
+			break;
 				
 		}//end of switch
 	}//end of handle

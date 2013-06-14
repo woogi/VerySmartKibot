@@ -11,20 +11,24 @@ import android.content.Context;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.ImageFormat;
+import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.hardware.Camera;
 import android.hardware.Camera.Parameters;
 import android.hardware.Camera.PreviewCallback;
+import android.os.Handler;
+import android.os.Message;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.widget.ImageView;
 
 import com.kt.facerecognition.framework.FaceDetection;
 
 public class FaceCameraSurface extends SurfaceView implements
-	SurfaceHolder.Callback, Runnable, PreviewCallback {
+	SurfaceHolder.Callback, PreviewCallback, Runnable {
 
     private static final String TAG = "FaceCameraSurface";
     private static final String DETECTION_DATA_DIR = "detectiondata/";
@@ -48,6 +52,25 @@ public class FaceCameraSurface extends SurfaceView implements
     private int[] rgba;
     private boolean stop;
 
+    /* Handling the sample preview */
+    private static ImageView sampleView;
+    private static Handler sampleHandler = new Handler() {
+	public void handleMessage(Message msg) {
+	    switch (msg.what) {
+	    case 0:
+		Bitmap bitmap = (Bitmap) msg.obj;
+		sampleView.setImageBitmap(bitmap);
+		break;
+	    case 1:
+		sampleView.setVisibility(VISIBLE);
+		break;
+	    case 2:
+		sampleView.setVisibility(GONE);
+	    }
+	};
+    };
+
+    /* Constructor from layout */
     public FaceCameraSurface(Context context, AttributeSet attrs) {
 	super(context, attrs);
 	getHolder().addCallback(this);
@@ -55,14 +78,17 @@ public class FaceCameraSurface extends SurfaceView implements
 	stop = true;
     }
 
+    /* Interface listener */
     public interface OnFaceDetectListener {
 	public void onFaceDetect();
     }
 
+    /* Set listener */
     public void setOnFaceDetectListener(OnFaceDetectListener listener) {
 	faceListener = listener;
     }
 
+    /* public methods */
     public void initializeAssets(File filesDir, AssetManager assets) {
 	DATA_PATH = filesDir.getPath() + "/";
 	makeDataDirectory(DETECTION_DATA_DIR);
@@ -73,12 +99,19 @@ public class FaceCameraSurface extends SurfaceView implements
 
     public void start() {
 	stop = false;
+	sampleHandler.sendEmptyMessage(1);
     }
 
-    public void stop() {
+    public void stopSample() {
+	stop = true;
+	sampleHandler.sendEmptyMessage(2);
+    }
+
+    public void stopSearch() {
 	stop = true;
     }
 
+    /* SurfaceHolder.Callback methods implementations */
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
 	Log.i(TAG, "surfaceCreated");
@@ -94,13 +127,10 @@ public class FaceCameraSurface extends SurfaceView implements
 	    camera.setParameters(params);
 	    allocateBuffer();
 	    setPreviewDisplay();
-	    startPreview(frameWidth, frameHeight);
+	    startPreview(frameWidth / reductCoef, frameHeight / reductCoef);
 	}
-    }
-
-    @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-	this.setMeasuredDimension(1, 1);
+	sampleView = ((ImageView) ((View) getParent())
+		.findViewById(R.id.camera_sample));
     }
 
     @Override
@@ -121,6 +151,7 @@ public class FaceCameraSurface extends SurfaceView implements
 	stopPreview();
     }
 
+    /* PreviewCallback method implementation */
     @Override
     public void onPreviewFrame(byte[] data, Camera camera) {
 	if (!stop) {
@@ -133,121 +164,25 @@ public class FaceCameraSurface extends SurfaceView implements
 	camera.addCallbackBuffer(buffer);
     }
 
+    /* Runnable method implementation */
     @Override
     public void run() {
+	Bitmap bitmap = null;
 	synchronized (this) {
 	    try {
 		this.wait();
-		processFrame(data);
+		bitmap = processFrame(data);
 	    } catch (InterruptedException e) {
 		Log.e(TAG, "Interrupted: " + e.getMessage());
 	    }
-	}
-    }
-
-    private byte[] reducedData(byte[] data) {
-	int size = frameWidth / reductCoef * frameHeight / reductCoef
-		+ (data.length - frameWidth * frameHeight);
-	byte[] reduced = new byte[size];
-	for (int i = 0, idx = 0; i < frameHeight; i++) {
-	    if (i % 2 == 0) {
-		for (int j = 0; j < frameWidth; j++) {
-		    if (j % 2 == 1) {
-			reduced[idx] = data[i * frameWidth + j];
-			idx++;
-		    }
-		}
-	    }
-	}
-	return reduced;
-    }
-
-    private void processFrame(byte[] data) {
-	if (!stop) {
-	    Log.i(TAG, "processFrame called");
-
-	    if (rgba != null && bitmap != null) {
-
-		faceDetection.getFaceRect(data);
-
-		if (faceDetection.detectedFaceNumber > 0) {
-		    Log.i(TAG, "face detected");
-		    if (faceListener != null) {
-			faceListener.onFaceDetect();
-		    }
-		}
+	    if (bitmap != null) {
+		sampleHandler.sendMessage(sampleHandler
+			.obtainMessage(0, bitmap));
 	    }
 	}
     }
 
-    private void startPreview(int previewWidth, int previewHeight) {
-	int width = previewWidth / reductCoef;
-	int height = previewHeight / reductCoef;
-	rgba = new int[width * height];
-	try {
-	    bitmap = Bitmap
-		    .createBitmap(width, height, Bitmap.Config.ARGB_8888);
-	} catch (OutOfMemoryError e) {
-	    Log.e(TAG, "Bitmap Out of Memory: " + e.getMessage());
-	    bitmap.recycle();
-	    bitmap = null;
-	}
-	initFaceDetection(width, height);
-	try {
-	    Log.i(TAG, "start preview");
-	    camera.startPreview();
-	    Log.i(TAG, "preview started");
-	} catch (RuntimeException e) {
-	    Log.e(TAG, "Starting camera preview failed");
-	}
-    }
-
-    private void stopPreview() {
-	if (bitmap != null) {
-	    bitmap.recycle();
-	    bitmap = null;
-	}
-	rgba = null;
-	if (faceDetection != null) {
-	    faceDetection.close();
-	}
-    }
-
-    private void initFaceDetection(int previewWidth, int previewHeight) {
-	String facedetectiondata = DATA_PATH + FACE_DETECTION_DATA_FILE;
-	String eyedetectiondata = DATA_PATH + EYE_DETECTION_DATA_FILE;
-	/* new Face Detection instance */
-	faceDetection = new FaceDetection();
-	faceDetection.setTrainingFilePath(facedetectiondata, eyedetectiondata);
-	faceDetection.setCamPreviewSize(previewWidth, previewHeight);
-	faceDetection.setMinimumDetectionSize(1);
-	/* Region Of Interest (ROI) */
-	Rect roi = new Rect(0, 0, previewWidth, previewHeight);
-	faceDetection.setROI(roi.left, roi.top, roi.right, roi.bottom);
-    }
-
-    private void allocateBuffer() {
-	int bitsPerPixel = ImageFormat.getBitsPerPixel(camera.getParameters()
-		.getPreviewFormat());
-	int w = frameWidth;
-	int h = frameHeight;
-	int size = w * h * bitsPerPixel / 8;
-	buffer = new byte[size];
-	camera.addCallbackBuffer(buffer);
-    }
-
-    private void setPreviewDisplay() {
-	try {
-	    SurfaceView fakeview = (SurfaceView) ((View) getParent())
-		    .findViewById(R.id.face_surface);
-	    fakeview.getHolder().setType(
-		    SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
-	    camera.setPreviewDisplay(fakeview.getHolder());
-	} catch (IOException e) {
-	    Log.e(TAG, "Setting camera preview failed: " + e.getMessage());
-	}
-    }
-
+    /* Private methods */
     private void makeDataDirectory(String dirName) {
 	File dir = new File(DATA_PATH + dirName);
 	if (!dir.exists()) {
@@ -294,5 +229,133 @@ public class FaceCameraSurface extends SurfaceView implements
 	} catch (IOException e) {
 	    Log.e(TAG, e.getMessage());
 	}
+    }
+
+    private void allocateBuffer() {
+	int bitsPerPixel = ImageFormat.getBitsPerPixel(camera.getParameters()
+		.getPreviewFormat());
+	int w = frameWidth;
+	int h = frameHeight;
+	int size = w * h * bitsPerPixel / 8;
+	buffer = new byte[size];
+	camera.addCallbackBuffer(buffer);
+    }
+
+    private void setPreviewDisplay() {
+	try {
+	    SurfaceView fakeview = (SurfaceView) ((View) getParent())
+		    .findViewById(R.id.camera_surface);
+	    fakeview.getHolder().setType(
+		    SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+	    camera.setPreviewDisplay(fakeview.getHolder());
+	} catch (IOException e) {
+	    Log.e(TAG, "Setting camera preview failed: " + e.getMessage());
+	}
+    }
+
+    private void startPreview(int width, int height) {
+	rgba = new int[width * height];
+	try {
+	    bitmap = Bitmap
+		    .createBitmap(width, height, Bitmap.Config.ARGB_8888);
+	} catch (OutOfMemoryError e) {
+	    Log.e(TAG, "Bitmap Out of Memory: " + e.getMessage());
+	    bitmap.recycle();
+	    bitmap = null;
+	}
+	initFaceDetection(width, height);
+	try {
+	    Log.i(TAG, "start preview");
+	    camera.startPreview();
+	} catch (RuntimeException e) {
+	    Log.e(TAG, "Starting camera preview failed");
+	}
+    }
+
+    private void stopPreview() {
+	if (bitmap != null) {
+	    bitmap.recycle();
+	    bitmap = null;
+	}
+	rgba = null;
+	if (faceDetection != null) {
+	    faceDetection.close();
+	}
+    }
+
+    private byte[] reducedData(byte[] data) {
+	int size = frameWidth / reductCoef * frameHeight / reductCoef
+		+ (data.length - frameWidth * frameHeight);
+	byte[] reduced = new byte[size];
+	for (int i = 0, idx = 0; i < frameHeight; i++) {
+	    if (i % 2 == 0) {
+		for (int j = 0; j < frameWidth; j++) {
+		    if (j % 2 == 1) {
+			reduced[idx] = data[i * frameWidth + j];
+			idx++;
+		    }
+		}
+	    }
+	}
+	return reduced;
+    }
+
+    private Bitmap processFrame(byte[] data) {
+	Log.i(TAG, "processFrame called");
+	if (stop) {
+	    Log.i(TAG, "processFrame stopped before end");
+	    return null;
+	} else {
+	    Bitmap fullBitmap = getBitmapFromData(data);
+	    if (rgba != null && bitmap != null) {
+		faceDetection.getFaceRect(data);
+		if (faceDetection.detectedFaceNumber > 0) {
+		    Log.i(TAG, "face detected");
+		    if (faceListener != null) {
+			faceListener.onFaceDetect();
+		    }
+		}
+	    }
+	    return fullBitmap;
+	}
+    }
+
+    private void initFaceDetection(int previewWidth, int previewHeight) {
+	String facedetectiondata = DATA_PATH + FACE_DETECTION_DATA_FILE;
+	String eyedetectiondata = DATA_PATH + EYE_DETECTION_DATA_FILE;
+	/* new Face Detection instance */
+	faceDetection = new FaceDetection();
+	faceDetection.setTrainingFilePath(facedetectiondata, eyedetectiondata);
+	faceDetection.setCamPreviewSize(previewWidth, previewHeight);
+	faceDetection.setMinimumDetectionSize(1);
+	/* Region Of Interest (ROI) */
+	Rect roi = new Rect(0, 0, previewWidth, previewHeight);
+	faceDetection.setROI(roi.left, roi.top, roi.right, roi.bottom);
+    }
+
+    private Bitmap getBitmapFromData(byte[] data) {
+	Bitmap bitmap = this.bitmap;
+	int[] rgba = this.rgba;
+	int w = frameWidth / reductCoef;
+	int h = frameHeight / reductCoef;
+	applyGrayScale(rgba, data, w, h);
+	bitmap.setPixels(rgba, 0, w, 0, 0, w, h);
+	return flip(bitmap);
+    }
+
+    private void applyGrayScale(int[] pixels, byte[] data, int width, int height) {
+	int p;
+	int size = width * height;
+	for (int i = 0; i < size; i++) {
+	    p = data[i] & 0xFF;
+	    pixels[i] = 0xff000000 | p << 16 | p << 8 | p;
+	}
+    }
+
+    private Bitmap flip(Bitmap bitmap) {
+	Matrix matrix = new Matrix();
+	matrix.preScale(-1f, 1f);
+	return Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(),
+		bitmap.getHeight(), matrix, true);
     }
 }

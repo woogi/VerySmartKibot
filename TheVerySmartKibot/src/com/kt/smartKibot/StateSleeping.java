@@ -42,7 +42,10 @@ public class StateSleeping implements IRobotState {
 		NoiseDetector.getInstance().start();
 		*/
 		
+		RobotMotion.getInstance(ctx).setLogoLEDDimming(0);
 
+		NoiseDetector.getInstance().start();
+		
 		try{
 			
 		RobotMotion.getInstance(ctx).stopAll();
@@ -76,45 +79,7 @@ public class StateSleeping implements IRobotState {
 	@Override
 	public void doAction(Context ctx) {
 		// TODO Auto-generated method stub
-/*
-		
-		
-		try{
-			
-			
-			
-			{
-				
-			int rand=(int) (Math.random()*10l);
-			
-			
-			switch(rand){
-				case 0:RobotSpeech.getInstance(ctx).speak("아이 졸려요",0.8f,0.8f);
-				break;
-				
-				case 1:RobotSpeech.getInstance(ctx).speak("아웅! 이제 자야겠다",0.6f,0.9f);
-				break;
-				
-				case 2:RobotSpeech.getInstance(ctx).speak("아이 졸려! 이제 자야지",0.8f,0.8f);
-				break;
-				
-				case 3:RobotSpeech.getInstance(ctx).speak("음! 졸려! 자야겠다",0.6f,0.8f);
-				break;
-				
-				case 4:RobotSpeech.getInstance(ctx).speak("난 이제 잘래요",0.8f,0.8f);
-				break;
-				case 0:RobotSpeech.getInstance(ctx).speak("졸려요",0.8f,0.8f);
-				break;
-				case 1:RobotSpeech.getInstance(ctx).speak("아웅!",0.6f,0.9f);
-				break;
-				case 4:RobotSpeech.getInstance(ctx).speak("잘래요",0.8f,0.8f);
-				break;
-			}
-			
-			}
-			
-	*/	
-			
+
 		if(_DEBUG){
 			RobotFace.getInstance(ctx).change(RobotFace.MODE_SLEEP,TAG);
 		}
@@ -125,31 +90,28 @@ public class StateSleeping implements IRobotState {
 		try{
 			
 			Thread.sleep(100);
+			int cnt=0;
 			
 			while(!isEnd){
-				
 			
-			Thread.sleep(200);
+				Thread.sleep(200);
 			
 			}
-			
-			
-			}catch(Exception e){}
+		
+		}catch(Exception e){e.printStackTrace();}
 			
 			
 	}
 
 	@Override
 	public void cleanUp(Context ctx) {
-		// TODO Auto-generated method stub
+		NoiseDetector.getInstance().stop();
 		RobotMotion.getInstance(ctx).stopWheel();
 
 	}
 
 	@Override
 	public void onChanged(Context ctx) {
-		// TODO Auto-generated method stub
-		NoiseDetector.getInstance().stop();
 		isEnd=true;
 		
 	}
