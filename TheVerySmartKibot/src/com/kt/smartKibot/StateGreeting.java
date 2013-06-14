@@ -12,7 +12,7 @@ public class StateGreeting implements IRobotState {
 	
 	@Override
 	public void onStart(Context ctx) {
-		// TODO Auto-generated method stub
+		
 		if(_DEBUG)
 		{
 			
@@ -29,10 +29,7 @@ public class StateGreeting implements IRobotState {
 
 	@Override
 	public void doAction(Context ctx) {
-		// TODO Auto-generated method stub
-
 		try{
-			
 			
 			RobotMotion.getInstance(ctx).setLogoLEDDimming(2);
 			Thread.sleep(200);
@@ -46,8 +43,6 @@ public class StateGreeting implements IRobotState {
 			
 			RobotMotion.getInstance(ctx).goBack(1, 5);
 			
-			
-			
 			while(!isEnd)
 			{
 				
@@ -59,14 +54,11 @@ public class StateGreeting implements IRobotState {
 
 	@Override
 	public void cleanUp(Context ctx) {
-		// TODO Auto-generated method stub
-		//RobotMotion.getInstance(ctx).stopRMM();
 		RobotMotion.getInstance(ctx).setLogoLEDDimming(0);
 	}
 
 	@Override
 	public void onChanged(Context ctx) {
-		// TODO Auto-generated method stub
 		isEnd=true;
 		
 	}

@@ -5,6 +5,7 @@ import java.io.File;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.speech.tts.TextToSpeech.OnUtteranceCompletedListener;
 import android.util.Log;
 import android.view.Menu;
@@ -19,7 +20,7 @@ import android.widget.TextView;
 import com.kt.face.ScreenSaverOpenGLSurface;
 
 
-public class RobotActivity extends Activity implements OnUtteranceCompletedListener{
+public class RobotActivity extends Activity implements OnUtteranceCompletedListener,IRobotEvtDelegator{
 
 	private static final String TAG="RobotActivity";
 	private RobotBrain brain;
@@ -30,59 +31,64 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 	private static FaceCameraSurface faceSurface;
 	private static TextView logView;
 	
-	private void stopAll(){
+	
+	private static final String baseFacePath = "/system/media/robot/face/";
+	private static final String[] facePaths = { "/face15", "/face16", "/face14", "/face03",
+			"/face13", "/face15", "/face08", "/face02", "/face01", "/face04",
+			"/face09", "/face11", "/face12", "/face10", "/face05", "/face06",
+			"/face07" };
+	
+	public static final String ACTION_CHANGE_FACE="com.kt.kibot.ChangeFace";
+	public static final String ACTION_FINISH_FACE="com.kt.kibot.FinishFace";
+	
+
+	@Override
+	public void finish() {
 		
 		if (brain != null){ 
 			brain.finalize();
 		    brain=null;
 		}
 		
-		
-		
 		RobotSpeech.finish();
 		RobotMotion.finish();
 		RobotFace.finish();
-		
-		finish();
+		super.finish();
 	}
+
+
 
 	@Override
 	public void onHeadLongPressed() {
-		// TODO Auto-generated method stub
-		//super.onHeadLongPressed();
+		super.onHeadLongPressed();
 		if(DEBUG)
 		{
-			// Toast.makeText(getApplicationContext(),"head long pressed",Toast.LENGTH_SHORT).show();
 			writeLog("head long pressed");
 		}
 		
 		TouchDetector.getInstance().sendEvent(this, TouchDetector.PARAM_HEAD_LONG_PRESSED);
-		stopAll();
+		finish();
 		
 	}
 
 	@Override
 	public void onHeadPressed() {
-		// TODO Auto-generated method stub
-		//super.onHeadPressed();
+		super.onHeadPressed();
 		if(DEBUG)
 		{
-			// Toast.makeText(getApplicationContext(),"head pressed",Toast.LENGTH_SHORT).show();
 			writeLog("head pressed");
 		}
 		
 		
-	//	TouchDetector.getInstance().sendEvent(this, TouchDetector.PARAM_HEAD_PRESSED);
-		stopAll();
+		TouchDetector.getInstance().sendEvent(this, TouchDetector.PARAM_HEAD_PRESSED);
+		finish();
 	}
 
 	@Override
 	public void onLeftEarPatted() {
-		// TODO Auto-generated method stub
-		//super.onLeftEarPatted();
+		super.onLeftEarPatted();
 		if(DEBUG)
 		{
-			// Toast.makeText(getApplicationContext(),"left ear patted",Toast.LENGTH_SHORT).show();
 			writeLog("left ear patted");
 		}
 		
@@ -92,11 +98,9 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 	
 	@Override
 	public void onRightEarPatted() {
-		// TODO Auto-generated method stub
-		//super.onRightEarPatted();
+		super.onRightEarPatted();
 		if(DEBUG)
 		{
-			// Toast.makeText(getApplicationContext(),"right ear patted",Toast.LENGTH_SHORT).show();
 			writeLog("right ear patted");
 		}
 		
@@ -106,11 +110,9 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 
 	@Override
 	public void onLeftFootPressed() {
-		// TODO Auto-generated method stub
-		//super.onLeftFootPressed();
+		super.onLeftFootPressed();
 		if(DEBUG)
 		{
-			// Toast.makeText(getApplicationContext(),"left foot pressed",Toast.LENGTH_SHORT).show();
 			writeLog("left foot pressed");
 		}
 		
@@ -119,11 +121,9 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 	
 	@Override
 	public void onRightFootPressed() {
-		// TODO Auto-generated method stub
-		//super.onRightFootPressed();
+		super.onRightFootPressed();
 		if(DEBUG)
 		{
-			// Toast.makeText(getApplicationContext(),"right foot pressed",Toast.LENGTH_SHORT).show();
 			writeLog("right foot pressed");
 		}
 	
@@ -132,15 +132,30 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 
 
 	
+	@Override
+	public void installHandler(IRobotEvtHandler handler) {
+		// TODO Auto-generated method stub
+		touchEvtHandler=handler;
+	}
 
-	private static final String baseFacePath = "/system/media/robot/face/";
-	private static final String[] facePaths = { "/face15", "/face16", "/face14", "/face03",
-			"/face13", "/face15", "/face08", "/face02", "/face01", "/face04",
-			"/face09", "/face11", "/face12", "/face10", "/face05", "/face06",
-			"/face07" };
-	
-	public static final String ACTION_CHANGE_FACE="com.kt.kibot.ChangeFace";
-	public static final String ACTION_FINISH_FACE="com.kt.kibot.FinishFace";
+	@Override
+	public void uninstallHandler() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void start() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void stop() {
+		// TODO Auto-generated method stub
+		
+	}
+
 	
 	
 	@Override
@@ -183,7 +198,6 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 		
 		Intent it=getIntent();
 		
-		
 		//launcher 화면 에서  최초실행 
 		if(true==it.getAction().equals("android.intent.action.MAIN"))
 		{
@@ -193,7 +207,11 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 			//write asset data on file system.
 			new UtilAssets(getApplicationContext(),"rmm").toFileSystem();
 			
+			RobotFace.getInstance(this).on();
 			brain=new RobotBrain(getApplicationContext());
+			
+			//screen touch event need refactoring.
+			installHandler(brain);	
 	
 		}
 
@@ -268,11 +286,13 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 			mSurface.setOnTouchListener(new OnTouchListener() {
 				@Override
 				public boolean onTouch(View v, MotionEvent event) {
-					if (event.getAction() == MotionEvent.ACTION_DOWN) {
-						Log.d(TAG, "touch face to finish activity");
+					if (event.getAction() == MotionEvent.ACTION_DOWN) 
+					{
+						Log.d(TAG, "touch face");
 						
-						stopAll();
-						
+						touchEvtHandler.handle(getApplicationContext(), 
+						new RobotEvent(RobotEvent.EVT_TOUCH_SCREEN));
+												writeLog("event touch screen");
 					}
 					return true;
 				}
@@ -295,7 +315,6 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 		}
 		
 		if(message!=null) {
-			// Toast.makeText(this,message,Toast.LENGTH_SHORT).show();
 			writeLog(message);
 		}
 		
@@ -329,7 +348,7 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 	 */
 	@Override
 	protected void onDestroy() {
-		// TODO Auto-generated method stub
+		Log.d(TAG,"onDestroy");
 		
 		clearAnimation();
 		super.onDestroy();

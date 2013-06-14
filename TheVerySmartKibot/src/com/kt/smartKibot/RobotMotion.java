@@ -49,7 +49,6 @@ public class RobotMotion {
 	private static float[] s_spds = { 0.01f,0.06f, 0.09f, 0.12f, 0.15f, 0.18f };
 	private static float[] s_rots = { 40.0f, 50.0f, 60.0f, 70.0f, 80.0f };
 	//public final int lengthToTime = 250000;
-	//public final int lengthToTime = 100000;
 	public final int lengthToTime = 20000;
 	public final int degToTime = 1200;
 	public final int friction = 5;
@@ -249,8 +248,8 @@ public class RobotMotion {
 	 * 앞으로 이동하는 함수
 	 * 
 	 * @param speed
-	 * @param len length * 10cm 만큼 전진
-	//public final int lengthToTime = 250000;
+	 * @param len length * 2cm 만큼 전진
+		public final int lengthToTime = 20000;
 	 */
 	public void goForward(int speed, int length) {
 		goForward(speed);
@@ -429,23 +428,15 @@ public class RobotMotion {
 	 */
 	public void turnRight(int speed, boolean speakOn, boolean faceOn) {
 		if (curWheelState != TURN_RIGHT) {
-			if (speakOn) {
-				// speakMsg("오른쪽으로!");
-//				playBGM(R.raw.bgm16);
-			}
-			if (faceOn) {
-//				faceOn(KibotVar.EMO_MODE_FUN);
-			}
 			curWheelState = TURN_RIGHT;
 		}
 		if (D)
 			Log.i(TAG, "turnRight");
+		
 		if (_robotManager == null)
 			return;
-	//	_robotManager.stopWheel();
-		//head(HEAD_RIGHT);
 		_robotManager.moveWheel(0.0f, s_rots[speed - 1]);
-		//_robotManager.moveHome();
+		
 	}
 
 	/**
@@ -503,7 +494,7 @@ public class RobotMotion {
 		if (_robotManager == null)
 			return;
 
-		head(HEAD_FRONT);
+	//	head(HEAD_FRONT);
 		_robotManager.moveWheel(0.0f, 0.0f);
 	}
 
