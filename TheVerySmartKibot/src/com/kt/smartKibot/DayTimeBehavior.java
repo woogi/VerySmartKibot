@@ -1,6 +1,7 @@
 package com.kt.smartKibot;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.ListIterator;
 
 import android.content.Context;
@@ -39,6 +40,12 @@ public class DayTimeBehavior extends RobotBehavior{
 		
 		switch(evt.getType())
 		{
+			case RobotEvent.EVT_TOUCH_SCREEN:
+			{
+				changeState(new StateSleeping());
+			}
+			break;
+			
 			case RobotEvent.EVT_TIMER:
 				if(StateGreeting.class.isInstance(getCurrentState()))
 				{
@@ -90,12 +97,12 @@ public class DayTimeBehavior extends RobotBehavior{
 				{
 					if(evt.getParam1()==2)
 					{
-						int rand=(int)(Math.random()*2);
+						int rand=1;//(int)(Math.random()*2);
 						if(rand==0){
-							changeState(new StateWandering());
+							changeState(new StateWandering(evt,history_log));
 						}
 						else{
-							changeState(new StateLookAround());
+							changeState(new StateLookAround(evt,history_log));
 						}
 					}
 						return;
@@ -109,7 +116,7 @@ public class DayTimeBehavior extends RobotBehavior{
 				{
 					if(evt.getParam1()==NoiseDetector.PARAM_SMALL_NOISE) 
 					{
-						changeState(new StateLookAround());
+						changeState(new StateLookAround(evt,history_log));
 						return;
 					}
 				
@@ -163,7 +170,7 @@ public class DayTimeBehavior extends RobotBehavior{
 								changeState(new StateEvasion(StateEvasion.CAUSE_BIG_NOISE));
 							}
 							else{
-								changeState(new StateWandering());
+								changeState(new StateWandering(evt,history_log));
 							}
 							
 						return;
@@ -183,7 +190,7 @@ public class DayTimeBehavior extends RobotBehavior{
 						{
 							
 							
-							changeState(new StateWandering());
+							changeState(new StateWandering(evt,history_log));
 						}
 						break;
 				
@@ -260,6 +267,15 @@ public class DayTimeBehavior extends RobotBehavior{
 		RobotTimer.getInstance().stop();
 		
 		getCurrentState().onChanged(ctx);
+		
+		Iterator<IRobotState> it=history_state.iterator();
+		
+		while(it.hasNext()){
+			it.next().onChanged(ctx);
+		}
+		
+		
+		
 		
 	}
 

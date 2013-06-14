@@ -1,5 +1,7 @@
 package com.kt.smartKibot;
 
+import java.util.ArrayList;
+
 import android.content.Context;
 import android.util.Log;
 
@@ -8,6 +10,7 @@ public class StateLookAround implements IRobotState {
     private static final String TAG = "StateLookAround";
     private boolean _DEBUG = true;
     private volatile boolean isEnd = false;
+    private RobotEvent cause=null;
 
     @Override
     public void onStart(Context ctx) {
@@ -21,14 +24,29 @@ public class StateLookAround implements IRobotState {
 
 	isEnd = false;
 
-	FaceDetector.getInstance().start();
+		FaceDetector.getInstance().start();
     }
 
+	StateLookAround(RobotEvent cause,ArrayList<RobotLog> log){
+		
+		this.cause=cause;
+		
+	}
+	
     @Override
     public void doAction(Context ctx) {
 	// TODO Auto-generated method stub
 
-	int rand = (int) (Math.random() * 5);
+	int rand = 1; //(int) (Math.random() * 5);
+	
+	if(cause!=null && cause.getType()==RobotEvent.EVT_NOISE_DETECTION)
+	{
+		try{
+	    Thread.sleep(200);
+		}catch(Exception e){e.printStackTrace();}
+		
+		RobotSpeech.getInstance(ctx).speak("어?",1.0f,1.0f);
+	}
 
 	switch (rand) {
 
@@ -36,13 +54,14 @@ public class StateLookAround implements IRobotState {
 	// break;
 
 	case 1:
-	    RobotSpeech.getInstance(ctx).speak("누구 있어요?", 1.0f, 1.1f);
+	    //RobotSpeech.getInstance(ctx).speak("씩!", 1.0f, 1.1f);
+	    //RobotSpeech.getInstance(ctx).speak("누구 있어요?", 1.0f, 1.1f);
 	    break;
-
+/*
 	case 2:
 	    RobotSpeech.getInstance(ctx).speak("누구세요? ", 1.0f, 1.1f);
 	    break;
-
+*/
 	// case 3:RobotSpeech.getInstance(ctx).speak("거기 누구신지?",0.8f,1.1f);
 	// break;
 
@@ -54,6 +73,7 @@ public class StateLookAround implements IRobotState {
 
 	try {
 
+		int oldDirection=-1;
 		int cnt = 0;
 	    while (!isEnd) {
 		// RobotMotion.getInstance(ctx).led(0,100,3);
@@ -62,7 +82,15 @@ public class StateLookAround implements IRobotState {
 		    int direction = (int) (Math.random() * 2l)
 			    + RobotMotion.HEAD_LEFT;
 		    Log.d(TAG, "head direction:" + direction);
+		  //  RobotMotion.getInstance(ctx).headWithSpeed(direction, 0f);
+		  //  Thread.sleep(300);
 		    RobotMotion.getInstance(ctx).headWithSpeed(direction, 0.1f);
+		    Thread.sleep(200);
+		    
+		    if(oldDirection!=direction){
+		  //  RobotSpeech.getInstance(ctx).speak("오", 1.0f, 1.1f);
+		    oldDirection=direction;
+		    }
 		}
 		
 		/*
@@ -98,18 +126,17 @@ public class StateLookAround implements IRobotState {
     public void cleanUp(Context ctx) {
 	// TODO Auto-generated method stub
 
-	// RobotMotion.getInstance(ctx).stopRMM();
-	RobotMotion.getInstance(ctx).stopAll();
-	RobotMotion.getInstance(ctx)
-		.headWithSpeed(RobotMotion.HEAD_FRONT, 1.0f);
-	RobotMotion.getInstance(ctx).setLogoLEDDimming(0);
+		FaceDetector.getInstance().stop();
+		// RobotMotion.getInstance(ctx).stopRMM();
+		RobotMotion.getInstance(ctx).stopAll();
+		RobotMotion.getInstance(ctx)
+			.headWithSpeed(RobotMotion.HEAD_FRONT, 1.0f);
+		RobotMotion.getInstance(ctx).setLogoLEDDimming(0);
     }
 
     @Override
     public void onChanged(Context ctx) {
-	Log.i(TAG, "context has chaged");
-	// TODO Auto-generated method stub
-	isEnd = true;
-	FaceDetector.getInstance().stop();
+		// TODO Auto-generated method stub
+		isEnd = true;
     }
 }

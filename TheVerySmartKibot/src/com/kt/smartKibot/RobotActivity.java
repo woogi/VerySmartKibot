@@ -5,6 +5,7 @@ import java.io.File;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.speech.tts.TextToSpeech.OnUtteranceCompletedListener;
 import android.util.Log;
 import android.view.Menu;
@@ -39,9 +40,6 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 			brain.finalize();
 		    brain=null;
 		}
-		
-		clearAnimation();
-		
 		
 		RobotSpeech.finish();
 		RobotMotion.finish();
@@ -221,7 +219,10 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 			//write asset data on file system.
 			new UtilAssets(getApplicationContext(),"rmm").toFileSystem();
 			
+			RobotFace.getInstance(this).on();
 			brain=new RobotBrain(getApplicationContext());
+			//screen touch event need refactoring.
+			installHandler(brain);	
 	
 		}
 
@@ -297,8 +298,11 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 				@Override
 				public boolean onTouch(View v, MotionEvent event) {
 					if (event.getAction() == MotionEvent.ACTION_DOWN) {
-						Log.d(TAG, "touch face to finish activity");
-						finish();
+						Log.d(TAG, "touch face");
+						
+						touchEvtHandler.handle(getApplicationContext(), 
+						new RobotEvent(RobotEvent.EVT_TOUCH_SCREEN));
+												writeLog("event touch screen");
 					}
 					return true;
 				}
@@ -358,6 +362,7 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 		// TODO Auto-generated method stub
 		Log.d(TAG,"onDestroy");
 		
+		clearAnimation();
 		super.onDestroy();
 	}
 
