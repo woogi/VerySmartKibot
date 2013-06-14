@@ -30,6 +30,26 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 	private static FaceCameraSurface faceSurface;
 	private static TextView logView;
 	
+	
+	
+
+	@Override
+	public void finish() {
+		if (brain != null){ 
+			brain.finalize();
+		    brain=null;
+		}
+		
+		clearAnimation();
+		
+		
+		RobotSpeech.finish();
+		RobotMotion.finish();
+		RobotFace.finish();
+		super.finish();
+	}
+
+
 
 	@Override
 	public void onHeadLongPressed() {
@@ -337,13 +357,6 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 	protected void onDestroy() {
 		// TODO Auto-generated method stub
 		Log.d(TAG,"onDestroy");
-		clearAnimation();
-		if (brain != null){
-		    brain.finalize();
-		}
-		RobotSpeech.finish();
-		RobotMotion.finish();
-		RobotFace.finish();
 		
 		super.onDestroy();
 	}
