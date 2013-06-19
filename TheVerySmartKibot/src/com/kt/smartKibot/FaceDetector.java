@@ -38,10 +38,11 @@ public class FaceDetector implements IRobotEvtDelegator,
     @Override
     public void start() {
 	Log.i(TAG, "start");
-	cameraSurface = RobotActivity.getFaceSurface();
+	cameraSurface = RobotActivity.addCameraSurface();
+	Log.i("nicolas", "camera surface : " + cameraSurface);
 	if (cameraSurface != null) {
-	    cameraSurface.start();
 	    cameraSurface.setOnFaceDetectListener(this);
+	    cameraSurface.start();
 	}
 	faceDetected = false;
     }
@@ -51,8 +52,9 @@ public class FaceDetector implements IRobotEvtDelegator,
 	Log.i(TAG, "stop");
 	if (cameraSurface != null) {
 	    cameraSurface.stopSample();
+	    RobotActivity.removeCameraSurface();
+	    cameraSurface = null;
 	}
-	cameraSurface = null;
     }
 
     public static FaceDetector getInstance() {
