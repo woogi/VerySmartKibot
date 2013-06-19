@@ -231,6 +231,7 @@ public class FaceCameraSurface extends SurfaceView implements
     }
 
     private void setPreviewDisplay() {
+    	
 	try {
 	    SurfaceView fakeview = this;
 	    fakeview.getHolder().setType(
@@ -238,6 +239,8 @@ public class FaceCameraSurface extends SurfaceView implements
 	    camera.setPreviewDisplay(fakeview.getHolder());
 	} catch (IOException e) {
 	    Log.e(TAG, "Setting camera preview failed: " + e.getMessage());
+	    
+	    
 	}
     }
 

@@ -1,7 +1,6 @@
 package com.kt.smartKibot;
 
 import android.content.Context;
-import android.widget.Toast;
 
 public class StateGreeting implements IRobotState {
 
@@ -12,44 +11,37 @@ public class StateGreeting implements IRobotState {
 	
 	@Override
 	public void onStart(Context ctx) {
-		
-		if(_DEBUG)
-		{
-			
+		if(_DEBUG) {
 				RobotFace.getInstance(ctx).change(RobotFace.MODE_EXCITED,TAG);
 		}
 		else{
 				RobotFace.getInstance(ctx).change(RobotFace.MODE_EXCITED);
-				
 		}
 	
 		isEnd=false;
-			
 	}
 
 	@Override
 	public void doAction(Context ctx) {
+		RobotMotion.getInstance(ctx).setLogoLEDDimming(2);
 		try{
+			int cnt=0;
 			
-			RobotMotion.getInstance(ctx).setLogoLEDDimming(2);
-			Thread.sleep(200);
-			
-			
-			RobotMotion.getInstance(ctx).goForward(1, 5);
-			
-			Thread.sleep(200);
-			
-			RobotSpeech.getInstance(ctx).speak("안녕 방가워");
-			
-			RobotMotion.getInstance(ctx).goBack(1, 5);
-			
-			while(!isEnd)
-			{
+			while(!isEnd) {
+				if(cnt==0) {
+					RobotMotion.getInstance(ctx).goForward(1,5);
+				}
+				else if(cnt==10) {
+					RobotSpeech.getInstance(ctx).speak("안녕 방가워");
+					RobotMotion.getInstance(ctx).goBack(1,5);
+				}
 				
-				Thread.sleep(200);
+				++cnt;
+				Thread.sleep(100);
 			}
-			
-			}catch(Exception e){}
+		}catch(Exception e){
+			e.printStackTrace();
+		}
 	}
 
 	@Override
