@@ -39,7 +39,6 @@ public class FaceDetector implements IRobotEvtDelegator,
     public void start() {
 	Log.i(TAG, "start");
 	cameraSurface = RobotActivity.addCameraSurface();
-	Log.i("nicolas", "camera surface : " + cameraSurface);
 	if (cameraSurface != null) {
 	    cameraSurface.setOnFaceDetectListener(this);
 	    cameraSurface.start();

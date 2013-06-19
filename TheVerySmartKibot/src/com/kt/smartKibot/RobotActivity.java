@@ -434,7 +434,6 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 			}
 			break;
 		    case 4:
-			Log.i("nicolas", "sample view : " + sampleView);
 			if (sampleView != null) {
 			    sampleView.setImageBitmap((Bitmap) msg.obj);
 			}
@@ -445,6 +444,11 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 	
 	public static FaceCameraSurface addCameraSurface() {
 	    cameraSurface = new FaceCameraSurface(ctx);
+	    RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(360, 270);
+	    params.topMargin = 10;
+	    params.rightMargin = 10;
+	    params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, RelativeLayout.TRUE);
+	    cameraSurface.setLayoutParams(params);
 	    layoutHandler.sendEmptyMessage(0);
 	    return cameraSurface;
 	}

@@ -20,7 +20,6 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import android.widget.RelativeLayout.LayoutParams;
 
 import com.kt.facerecognition.framework.FaceDetection;
 
@@ -58,7 +57,6 @@ public class FaceCameraSurface extends SurfaceView implements
 	super(context);
 	staticContext = context;
 	initializeAssets();
-	setLayoutParams(new LayoutParams(1, 1));
 	getHolder().addCallback(this);
 	getHolder().setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
 	stopSample = true;
@@ -77,7 +75,6 @@ public class FaceCameraSurface extends SurfaceView implements
 
     /* public methods */
     public void start() {
-	// RobotActivity.addSampleView();
 	stopSample = false;
 	stopSearch = false;
     }
