@@ -45,8 +45,6 @@ public class WeatherInfo {
 	
 	ArrayList <WeatherStatus> status;
 	
-	
-	 
 	public WeatherInfo() {
 	
 		dbf=DocumentBuilderFactory.newInstance();

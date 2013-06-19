@@ -32,7 +32,7 @@ public class StateGreeting implements IRobotState {
 					RobotMotion.getInstance(ctx).goForward(1,5);
 				}
 				else if(cnt==10) {
-					RobotSpeech.getInstance(ctx).speak("안녕 방가워");
+					RobotSpeech.getInstance(ctx).speak("소장님! 방가워요");
 					RobotMotion.getInstance(ctx).goBack(1,5);
 				}
 				

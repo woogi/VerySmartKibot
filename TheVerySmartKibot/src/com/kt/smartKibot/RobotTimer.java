@@ -1,5 +1,6 @@
 package com.kt.smartKibot;
 
+import java.util.Calendar;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -17,6 +18,7 @@ public class RobotTimer implements IRobotEvtDelegator {
 	
 	private static volatile int _cnt=0;
 	
+	static int lastHour=-1;
 	
 	static RobotTimer getInstance(){
 		
@@ -70,8 +72,24 @@ public class RobotTimer implements IRobotEvtDelegator {
 		public void run(){
 		
 			
-			RobotEvent evt=new RobotEvent(RobotEvent.EVT_TIMER,++_cnt,0,null);
-			Log.d(TAG,"count:"+_cnt);
+			RobotEvent evt=null;
+			Calendar c = Calendar.getInstance();
+			int thisHour=c.get(Calendar.HOUR_OF_DAY);
+		
+			if(lastHour!=thisHour)
+			{
+				evt=new RobotEvent(RobotEvent.EVT_TIMER_HOURLY,thisHour,-1,null);
+				Log.d(TAG,"EVT_TIMER_HOURLY hour:"+thisHour);
+				RobotActivity.writeLog("EVT_TIMER_HOURLY hour:"+thisHour);
+				lastHour=thisHour;
+				reset();
+			}
+			else{
+				evt=new RobotEvent(RobotEvent.EVT_TIMER,++_cnt,-1,null);
+				Log.d(TAG,"EVT_TIMER count:"+_cnt);
+			}
+			
+			
 			
 			handler.handle(null,evt);
 		}

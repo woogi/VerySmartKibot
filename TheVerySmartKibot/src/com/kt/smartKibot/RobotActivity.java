@@ -4,6 +4,7 @@ import java.io.File;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.speech.tts.TextToSpeech.OnUtteranceCompletedListener;
@@ -30,6 +31,7 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 	IRobotEvtHandler touchEvtHandler=null;
 	private static FaceCameraSurface faceSurface;
 	private static TextView logView;
+	private View modeIndicator;
 	
 	
 	private static final String baseFacePath = "/system/media/robot/face/";
@@ -196,6 +198,9 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
     	logView = (TextView) findViewById(R.id.log_view);
     	((ScrollView) logView.getParent()).setVerticalScrollBarEnabled(false);
         	
+    	modeIndicator=(View)findViewById(R.id.robot_mode);
+    	
+    	modeIndicator.setBackgroundColor(Color.YELLOW);
 		
 		Intent it=getIntent();
 		

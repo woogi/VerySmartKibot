@@ -103,7 +103,7 @@ class StatePresenter extends Thread{
 //	static final Lock lock= new ReentrantLock(); 
 	 
 	StatePresenter(IRobotState item,RobotBehavior behavior){
-		setName("Robot Action Hanlder");
+		setName("Robot StatePresenter thread");
 		this.item=item;
 		this.behavior=behavior;	
 	}

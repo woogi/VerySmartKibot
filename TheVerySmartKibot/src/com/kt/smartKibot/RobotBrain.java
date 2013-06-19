@@ -84,9 +84,6 @@ public class RobotBrain implements IRobotEvtHandler{
 		TouchDetector.getInstance().installHandler(this);
 		TouchDetector.getInstance().start();
 		
-		
-		
-		
 		//battery checker handler 등
 		batteryChecker=new BatteryChecker(ctx);
 		batteryChecker.installHandler(this);

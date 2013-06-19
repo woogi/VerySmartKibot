@@ -15,9 +15,7 @@ public class RobotEvent {
 	//even type definition
 	public static final int EVT_UNKNOWN=-1111;
 	public static final int PARAM_UNKNOWN=-1111;
-	public static final int EVT_ALARM_GOOD_MORNING=0;
-	public static final int EVT_ALARM_GOOD_BYE=1;
-	public static final int EVT_ALARM_SCHEDULE_BREIF=2;
+	public static final int EVT_TIMER_HOURLY=1;
 	
 	public static final int EVT_TIMER=3;
 	public static final int EVT_NOISE_DETECTION=4;

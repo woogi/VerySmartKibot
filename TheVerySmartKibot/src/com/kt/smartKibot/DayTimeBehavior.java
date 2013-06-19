@@ -13,6 +13,8 @@ public class DayTimeBehavior extends RobotBehavior {
 	private static final String TAG = "DayTimeBehavior";
 	long lastTouch = 0;
 	private volatile boolean isEnd = false;
+	private volatile int targetHourlyBrief=-1;
+	private volatile boolean isAlreadyDailyBrief=false;
 
 	public DayTimeBehavior(ArrayList<RobotLog> logHistory) {
 		super(logHistory);
@@ -25,8 +27,9 @@ public class DayTimeBehavior extends RobotBehavior {
 	 */
 	@Override
 	public void onStart(Context ctx) {
-		// TODO Auto-generated method stub
 		super.onStart(ctx);
+		targetHourlyBrief=-1;
+		isAlreadyDailyBrief=false;
 		RobotTimer.getInstance().start();
 		changeState(new StateGreeting());
 	}
@@ -39,7 +42,7 @@ public class DayTimeBehavior extends RobotBehavior {
 	 */
 	@Override
 	public void handle(Context ctx, RobotEvent evt) {
-		// TODO Auto-generated method stub
+		
 
 		if (isEnd)
 			return;
@@ -48,16 +51,43 @@ public class DayTimeBehavior extends RobotBehavior {
 		_t.setToNow();
 		long currentTime = _t.toMillis(false);
 
-		switch (evt.getType()) {
-		case RobotEvent.EVT_TOUCH_SCREEN: {
+		switch (evt.getType()) 
+		{
+		
+		case RobotEvent.EVT_TOUCH_SCREEN: 
+		{
 			changeState(new StateSleeping());
 		}
-			break;
+		break;
+		
+		case RobotEvent.EVT_TIMER_HOURLY:
+		{			targetHourlyBrief=evt.getParam1();
+		}
+		break;
+			
 
 		case RobotEvent.EVT_TIMER:
 			if (StateGreeting.class.isInstance(getCurrentState())) {
 				if (evt.getParam1() == 2 /* test */) {
-					changeState(new StateLookAround(evt, history_log));
+					changeState(new StateScheduleBriefing(StateScheduleBriefing.HOURLY,15));
+					//changeState(new StateBye());
+					//changeState(new StateScheduleBriefing(StateScheduleBriefing.DAILY));
+					//changeState(new StateLookAround(evt, history_log));
+					return;
+				}
+			}
+			
+			//need to change it (change to the sleeping state after just finishing this state) 
+			if(StateScheduleBriefing.class.isInstance(getCurrentState())){
+				if (evt.getParam1() >= 4 && RobotSpeech.getInstance(ctx).isSpeaking()==false) {
+					changeState(new StateSleeping());
+					return;
+				}
+			}
+			
+			if(StateBye.class.isInstance(getCurrentState())){
+				if (evt.getParam1() >= 4 && RobotSpeech.getInstance(ctx).isSpeaking()==false) {
+					changeState(new StateSleeping());
 					return;
 				}
 			}
@@ -97,17 +127,37 @@ public class DayTimeBehavior extends RobotBehavior {
 
 			if (StateSleeping.class.isInstance(getCurrentState())) {
 				if (evt.getParam1() == 2) {
-					int rand = (int) (Math.random() * 2);
-					if (rand == 0) {
-						changeState(new StateWandering(evt, history_log));
-					} else {
-						changeState(new StateLookAround(evt, history_log));
+					
+					if(targetHourlyBrief!=-1)
+					{
+						if((targetHourlyBrief==8) || targetHourlyBrief==9 && isAlreadyDailyBrief==false)/* 8시 혹은 9시에 한번만*/
+						{
+						//	targetHourlyBrief=-1;
+							changeState(new StateScheduleBriefing(StateScheduleBriefing.DAILY));
+						//	isAlreadyDailyBrief=true;
+						}
+						else{
+						//	targetHourlyBrief=-1;
+						//	isAlreadyDailyBrief=false; //여기선 무조건 dailyBrief상태를 false로 바꿀수있다.(8시나 ,9시이나 이미 dailyBrief한경우나 8,9시 이외의 시간)
+							changeState(new StateScheduleBriefing(StateScheduleBriefing.HOURLY,targetHourlyBrief+1));
+						}
+					}
+					else{
+					
+						int rand = (int) (Math.random() *2l);
+						if (rand == 0) {
+							//changeState(new StateWandering(evt, history_log));
+							changeState(new StateScheduleBriefing(StateScheduleBriefing.DAILY));
+						} else {
+							changeState(new StateBye());
+							//changeState(new StateLookAround(evt, history_log));
+						}
 					}
 				}
 				return;
 			}
 
-			break;
+		break;
 
 		case RobotEvent.EVT_NOISE_DETECTION:
 
@@ -120,11 +170,8 @@ public class DayTimeBehavior extends RobotBehavior {
 				if (evt.getParam1() == NoiseDetector.PARAM_BIG_NOISE) {
 
 					// check latest 3 StateSleeping state has received big noise
-					// event
-
 					int cntBigNoise = 0;
-					int cntSleepingState = 1; // 현재 상황이 sleepingState이니 기본 cnt는
-												// 1
+					int cntSleepingState = 1; // 현재 상황이 sleepingState이니 기본 cnt는 1
 					RobotLog prevLog = null;
 
 					ListIterator<RobotLog> it = history_log
@@ -133,13 +180,8 @@ public class DayTimeBehavior extends RobotBehavior {
 					while (it.hasPrevious()) {
 						RobotLog log = it.previous();
 
-						if (log.getEvent().getTimeStamp().toMillis(false) + 1000 * 60 * 10 < currentTime) /*
-																										 * 10
-																										 * 분
-																										 * 이내
-																										 * 내역만
-																										 */
-							break;
+						if (log.getEvent().getTimeStamp().toMillis(false) + 1000 * 60 * 10 < currentTime) 
+							break; //10분이내 내역만  
 
 						if (StateSleeping.class.isInstance(log.getState())) {
 							if (prevLog != null
@@ -193,11 +235,9 @@ public class DayTimeBehavior extends RobotBehavior {
 
 			case BatteryChecker.PARAM_POWER_DISCONNECTED:
 				if (StateCharging.class.isInstance(getCurrentState())) {
-
 					changeState(new StateWandering(evt, history_log));
 				}
 				break;
-
 			}
 			break;
 

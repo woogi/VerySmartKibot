@@ -104,6 +104,11 @@ public class RobotSpeech implements OnInitListener{
 					
 	}
 	
+	public boolean isSpeaking(){
+		
+		return tts.isSpeaking();
+		
+	}
 	
 	 public void onInit(int arg0) {
 		// TODO Auto-generated method stub
