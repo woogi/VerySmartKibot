@@ -242,14 +242,19 @@ public class FaceCameraSurface extends SurfaceView implements
     }
 
     private void setPreviewDisplay() {
+    	
 	try {
+	
 	    SurfaceView fakeview = (SurfaceView) ((View) getParent())
 		    .findViewById(R.id.camera_surface);
+		    
 	    fakeview.getHolder().setType(
 		    SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
 	    camera.setPreviewDisplay(fakeview.getHolder());
 	} catch (IOException e) {
 	    Log.e(TAG, "Setting camera preview failed: " + e.getMessage());
+	    
+	    
 	}
     }
 

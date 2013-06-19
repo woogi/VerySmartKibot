@@ -1,6 +1,8 @@
 package com.kt.smartKibot;
 
 import java.util.ArrayList;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import android.content.Context;
 import android.os.Handler;
@@ -86,8 +88,8 @@ public abstract class RobotBehavior implements IRobotEvtHandler{
  *
  * 
  * State의 onSart,doAction,cleanUp method를 순서대로 호출하는 역할 
- * 각 method 에서 UI관련 코드나 다른 activity 등으로 Intent를 보낼경우가 많이 예상되므 (이벤트를 보내는 방식으로 동작하는 경우) 원하 동작이 즉각 실행할수있도록
- * 각 method 내부에서 직접 다음 method를 호출하지 않 다음 동작에 해당하는 메세지만 보내고 즉 종료
+ * 각 method 에서 UI관련 코드나 다른 activity 등으로 Intent를 보내거나 이벤트를 보내는 방식으로 동작하는 경우를 위해 
+ * 각 method 내부에서 직접 다음 method를 호출하지 않고 다음 동작에 해당하는 메세지만 보내고 즉각 method를 종료하여 context changing 되도록 함
  */
 class StatePresenter extends Thread{
 	public Handler mHandler;
@@ -98,6 +100,7 @@ class StatePresenter extends Thread{
 	
 	IRobotState item;
 	RobotBehavior behavior;
+//	static final Lock lock= new ReentrantLock(); 
 	 
 	StatePresenter(IRobotState item,RobotBehavior behavior){
 		setName("Robot Action Hanlder");
@@ -106,6 +109,10 @@ class StatePresenter extends Thread{
 	}
 	
 	public void run(){
+		
+//		lock.lock();  //make it class scope mutex.
+		
+		try{
 		Looper.prepare();
 		
 		mHandler = new Handler() {
@@ -132,6 +139,11 @@ class StatePresenter extends Thread{
        
         mHandler.sendEmptyMessage(DO_PREPARE); 
         Looper.loop();
+        
+		}
+		finally{
+	//		lock.unlock();
+		}
         
 	}
 	

@@ -186,6 +186,8 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 		
 		Log.d(TAG,"onCreate");
 		super.onCreate(savedInstanceState);
+		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+		
 		setContentView(R.layout.main);
 		
     	faceSurface = (FaceCameraSurface) findViewById(R.id.camera_surface);
@@ -194,7 +196,6 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
     	logView = (TextView) findViewById(R.id.log_view);
     	((ScrollView) logView.getParent()).setVerticalScrollBarEnabled(false);
         	
-		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 		
 		Intent it=getIntent();
 		
@@ -203,11 +204,14 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 		{
 		
 			Log.d(TAG,"start with action.Main");
+			// set main activity context
+			RobotSpeech.getInstance(this);
+			RobotMotion.getInstance(this);
+			RobotFace.getInstance(this);
 			
 			//write asset data on file system.
-			new UtilAssets(getApplicationContext(),"rmm").toFileSystem();
+		//	new UtilAssets(getApplicationContext(),"rmm").toFileSystem();
 			
-			RobotFace.getInstance(this).on();
 			brain=new RobotBrain(getApplicationContext());
 			
 			//screen touch event need refactoring.
@@ -377,10 +381,6 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 		
 		Intent it=getIntent();
 		
-		// set main activity context
-		RobotSpeech.getInstance(this);
-		RobotMotion.getInstance(this);
-		RobotFace.getInstance(this);
 		
 		if(true==it.getAction().equals(ACTION_CHANGE_FACE)){
 			Log.d(TAG,"action -- kibot.ChangeFace");
