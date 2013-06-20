@@ -37,7 +37,7 @@ public class StateBye implements IRobotState {
 		WeatherStatus status=wInfo.status.get(0);
 		WeatherStatus st=wInfo.getInfoHourly(18,WeatherStatus.TODAY);
 		
-		msg="소장님! 오늘도 수고  하셨습니다. ";
+		msg="소장님, 오늘도 수고  하셨습니다. ";
 		
 		if(st!=null){
 		
@@ -120,13 +120,13 @@ public class StateBye implements IRobotState {
 			while(!isEnd)
 			{
 			
-				if(cnt==0) RobotMotion.getInstance(ctx).goForward(1,2);
+				if(cnt==0) RobotMotion.getInstance(ctx).goForward(1,1);
 					
 				if(cnt==10) RobotSpeech.getInstance(ctx).speak(msg);
 				
 				if(cnt>40 && RobotSpeech.getInstance(ctx).isSpeaking()==false && moveBack==false) 
 				{
-					RobotMotion.getInstance(ctx).goBack(1,2);
+					RobotMotion.getInstance(ctx).goBack(1,1);
 					moveBack=true;
 				}
 				

@@ -34,6 +34,7 @@ public class RobotFace{
 	public static final int MODE_ANGRY = 14;
 	public static final int MODE_WINK_LEFT = 15;
 	public static final int MODE_WINK_RIGHT = 16;
+	public static final int MODE_SLEEPY = 17;
 	
 	public void off(){
 		Intent intent = new Intent();

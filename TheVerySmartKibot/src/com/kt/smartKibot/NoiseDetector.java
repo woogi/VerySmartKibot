@@ -32,14 +32,14 @@ public class NoiseDetector implements IRobotEvtDelegator ,NoiseCheckThread.OnNoi
 	}
 
 	@Override
-	public void start(){
+	synchronized public void  start(){
 		noiseCheckThread=new NoiseCheckThread(null);
 		noiseCheckThread.start();
 		noiseCheckThread.setOnNoiseListener(this);
 	}
 	
 	@Override
-	public void stop(){
+	synchronized public void stop(){
 		if(noiseCheckThread!=null) noiseCheckThread.stopRunning();
 		try {
 			Thread.sleep(100);
@@ -57,7 +57,7 @@ public class NoiseDetector implements IRobotEvtDelegator ,NoiseCheckThread.OnNoi
 		
 	}
 	
-	public void onNoiseEvent(int vol, int dB) {
+	synchronized public void onNoiseEvent(int vol, int dB) {
 		
 		Log.d(TAG,"vol: "+vol+", dB: "+dB);
 		

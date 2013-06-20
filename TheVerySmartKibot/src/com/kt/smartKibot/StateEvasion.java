@@ -10,6 +10,7 @@ public class StateEvasion implements IRobotState {
 	
 	public static final int CAUSE_BIG_NOISE=0;
 	public static final int CAUSE_TOUCH_TOO_MUCH=1;
+	public static final int CAUSE_SLEEPY=2;
 	
 	
 	StateEvasion(int cause){
@@ -22,11 +23,24 @@ public class StateEvasion implements IRobotState {
 		// TODO Auto-generated method stub
 		if(_DEBUG)
 		{
-			
-				RobotFace.getInstance(ctx).change(RobotFace.MODE_SAD,TAG);
+				if(cause==CAUSE_SLEEPY)
+				{
+					RobotFace.getInstance(ctx).change(RobotFace.MODE_SLEEPY,TAG);
+				}
+				else{
+					
+					RobotFace.getInstance(ctx).change(RobotFace.MODE_SAD,TAG);
+				}
+				
 		}
 		else{
-				RobotFace.getInstance(ctx).change(RobotFace.MODE_SAD);
+				if(cause==CAUSE_SLEEPY)
+				{
+					RobotFace.getInstance(ctx).change(RobotFace.MODE_SLEEPY,TAG);
+				}
+				else{
+					RobotFace.getInstance(ctx).change(RobotFace.MODE_SAD);
+				}
 				
 		}
 	
@@ -37,22 +51,34 @@ public class StateEvasion implements IRobotState {
 	@Override
 	public void doAction(Context ctx) {
 		// TODO Auto-generated method stub
-	
-		if(cause==CAUSE_TOUCH_TOO_MUCH){
-			RobotSpeech.getInstance(ctx).speak("계속 만지면 싫어 싫어",0.9f,1.0f);
-		}
-		
-		if(cause==CAUSE_BIG_NOISE){
-			RobotSpeech.getInstance(ctx).speak("아웅 시끄러워",0.9f,1.0f);
-		}
-		
-		
-		RobotMotion.getInstance(ctx).goBack(1, 2);
-		
-		RobotMotion.getInstance(ctx).setLogoLEDDimming(2);
-		
 		try{
-			Thread.sleep(500);
+			int cnt=0;
+			
+			while(!isEnd){
+				
+				if(cnt==0)
+				{
+					RobotMotion.getInstance(ctx).setLogoLEDDimming(2);
+				
+					if(cause==CAUSE_TOUCH_TOO_MUCH){
+						RobotSpeech.getInstance(ctx).speak("계속 만지면 싫어 싫어",0.9f,1.0f);
+					}
+					
+					if(cause==CAUSE_BIG_NOISE){
+						RobotSpeech.getInstance(ctx).speak("아웅 시끄러워",0.9f,1.0f);
+					}
+					
+					if(cause==CAUSE_SLEEPY){
+						RobotSpeech.getInstance(ctx).speak("아웅 졸려요",0.9f,1.0f);
+					}
+					
+				}
+				
+				if(cnt==10)	RobotMotion.getInstance(ctx).goBack(1, 1);
+				
+				++cnt;
+				Thread.sleep(100);
+			}
 		}catch(Exception e){
 			e.printStackTrace();
 		}

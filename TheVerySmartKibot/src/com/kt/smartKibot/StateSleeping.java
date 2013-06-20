@@ -31,7 +31,7 @@ public class StateSleeping implements IRobotState {
 			
 			while(!isEnd) {
 				if(cnt==0) {
-					RobotMotion.getInstance(ctx).goBack(1,3);
+					RobotMotion.getInstance(ctx).goBack(1,1);
 				}
 				else if(cnt==10) {
 					int rand=(int) (Math.random()*2l);

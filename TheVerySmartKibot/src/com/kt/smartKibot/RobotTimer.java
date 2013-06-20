@@ -80,6 +80,8 @@ public class RobotTimer implements IRobotEvtDelegator {
 			{
 				evt=new RobotEvent(RobotEvent.EVT_TIMER_HOURLY,thisHour,-1,null);
 				Log.d(TAG,"EVT_TIMER_HOURLY hour:"+thisHour);
+				
+				//it's dangerous... after destorying main activity...????
 				RobotActivity.writeLog("EVT_TIMER_HOURLY hour:"+thisHour);
 				lastHour=thisHour;
 				reset();

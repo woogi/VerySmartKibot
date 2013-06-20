@@ -53,11 +53,11 @@ public class StateWandering implements IRobotState {
 					rand = (int) (Math.random() * 5l);
 					if(rand==0) {
 						RobotMotion.getInstance(ctx).stopWheel();
-						RobotMotion.getInstance(ctx).goForward(1, 3);
+						RobotMotion.getInstance(ctx).goForward(1, 1);
 					}
 					else if(rand==1) {
 						RobotMotion.getInstance(ctx).stopWheel();
-						RobotMotion.getInstance(ctx).goBack(1, 3);
+						RobotMotion.getInstance(ctx).goBack(1, 1);
 					}
 					else if(rand==2) {
 						RobotMotion.getInstance(ctx).stopWheel();

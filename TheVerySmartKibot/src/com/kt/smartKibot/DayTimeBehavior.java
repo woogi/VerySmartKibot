@@ -5,13 +5,13 @@ import java.util.Iterator;
 import java.util.ListIterator;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.text.format.Time;
 import android.util.Log;
 
 public class DayTimeBehavior extends RobotBehavior {
 
 	private static final String TAG = "DayTimeBehavior";
-	long lastTouch = 0;
 	private volatile boolean isEnd = false;
 	private volatile int targetHourlyBrief=-1;
 	private volatile boolean isAlreadyDailyBrief=false;
@@ -28,8 +28,10 @@ public class DayTimeBehavior extends RobotBehavior {
 	@Override
 	public void onStart(Context ctx) {
 		super.onStart(ctx);
+		isEnd=false;
 		targetHourlyBrief=-1;
 		isAlreadyDailyBrief=false;
+		RobotActivity.setModeIndicatorColor(Color.YELLOW);
 		RobotTimer.getInstance().start();
 		changeState(new StateGreeting());
 	}
@@ -61,18 +63,47 @@ public class DayTimeBehavior extends RobotBehavior {
 		break;
 		
 		case RobotEvent.EVT_TIMER_HOURLY:
-		{			targetHourlyBrief=evt.getParam1();
+		{
+			targetHourlyBrief=evt.getParam1();
+			
 		}
 		break;
 			
 
 		case RobotEvent.EVT_TIMER:
+			
+				if (evt.getParam1() == 2 ) {
+					if(targetHourlyBrief!=-1)
+					{
+						if(targetHourlyBrief==18)
+						{
+							targetHourlyBrief=-1;
+							changeState(new StateBye() );
+							isAlreadyDailyBrief=true;
+							return;
+							
+						}
+						
+						if((targetHourlyBrief==8) || targetHourlyBrief==9 && isAlreadyDailyBrief==false)/* 8시 혹은 9시에 한번만*/
+						{
+							changeState(new StateScheduleBriefing(StateScheduleBriefing.DAILY));
+							targetHourlyBrief=-1;
+							isAlreadyDailyBrief=true;
+							return;
+						}
+						else{
+							changeState(new StateScheduleBriefing(StateScheduleBriefing.HOURLY,targetHourlyBrief+1));
+							targetHourlyBrief=-1;
+							isAlreadyDailyBrief=false; //여기선 무조건 dailyBrief상태를 false로 바꿀수있다.(8시나 ,9시이나 이미 dailyBrief한경우나 8,9시 이외의 시간)
+							return;
+						}
+					}
+				}
+				
+				
 			if (StateGreeting.class.isInstance(getCurrentState())) {
-				if (evt.getParam1() == 2 /* test */) {
-					changeState(new StateScheduleBriefing(StateScheduleBriefing.HOURLY,15));
-					//changeState(new StateBye());
-					//changeState(new StateScheduleBriefing(StateScheduleBriefing.DAILY));
-					//changeState(new StateLookAround(evt, history_log));
+				if (evt.getParam1() == 2 ) {
+						changeState(new StateLookAround(evt,history_log));
 					return;
 				}
 			}
@@ -98,9 +129,16 @@ public class DayTimeBehavior extends RobotBehavior {
 					return;
 				}
 			}
+			
+			if (StateAttraction.class.isInstance(getCurrentState())) {
+				if (evt.getParam1() == 3) {
+					changeState(new StateSleeping());
+					return;
+				}
+			}
 
 			if (StateEvasion.class.isInstance(getCurrentState())) {
-				if (evt.getParam1() == 4) {
+				if (evt.getParam1() == 2) {
 					changeState(new StateSleeping());
 					return;
 				}
@@ -126,33 +164,8 @@ public class DayTimeBehavior extends RobotBehavior {
 			}
 
 			if (StateSleeping.class.isInstance(getCurrentState())) {
-				if (evt.getParam1() == 2) {
+				if (evt.getParam1() == 30*60/5/*30min*/) {
 					
-					if(targetHourlyBrief!=-1)
-					{
-						if((targetHourlyBrief==8) || targetHourlyBrief==9 && isAlreadyDailyBrief==false)/* 8시 혹은 9시에 한번만*/
-						{
-						//	targetHourlyBrief=-1;
-							changeState(new StateScheduleBriefing(StateScheduleBriefing.DAILY));
-						//	isAlreadyDailyBrief=true;
-						}
-						else{
-						//	targetHourlyBrief=-1;
-						//	isAlreadyDailyBrief=false; //여기선 무조건 dailyBrief상태를 false로 바꿀수있다.(8시나 ,9시이나 이미 dailyBrief한경우나 8,9시 이외의 시간)
-							changeState(new StateScheduleBriefing(StateScheduleBriefing.HOURLY,targetHourlyBrief+1));
-						}
-					}
-					else{
-					
-						int rand = (int) (Math.random() *2l);
-						if (rand == 0) {
-							//changeState(new StateWandering(evt, history_log));
-							changeState(new StateScheduleBriefing(StateScheduleBriefing.DAILY));
-						} else {
-							changeState(new StateBye());
-							//changeState(new StateLookAround(evt, history_log));
-						}
-					}
 				}
 				return;
 			}
@@ -185,8 +198,7 @@ public class DayTimeBehavior extends RobotBehavior {
 
 						if (StateSleeping.class.isInstance(log.getState())) {
 							if (prevLog != null
-									&& !StateSleeping.class.isInstance(prevLog
-											.getState())) {
+									&& !StateSleeping.class.isInstance(prevLog.getState())) {
 								// 이전상태가 sleeping이 아닐때만... log는 event 단위로
 								// 저장하기때문에 상태변했을때만 count
 								if (++cntSleepingState > 3)
@@ -227,48 +239,32 @@ public class DayTimeBehavior extends RobotBehavior {
 			
 			break;
 
-		case RobotEvent.EVT_BATTERY_STATE:
-			switch (evt.getParam1()) {
-			case BatteryChecker.PARAM_POWER_CONNECTED:
-				changeState(new StateCharging());
-				break;
-
-			case BatteryChecker.PARAM_POWER_DISCONNECTED:
-				if (StateCharging.class.isInstance(getCurrentState())) {
-					changeState(new StateWandering(evt, history_log));
-				}
-				break;
-			}
-			break;
 
 		case RobotEvent.EVT_TOUCH_BODY: {
 
 			int _cntTouch = 1;
 
-			if (lastTouch != 0 && System.currentTimeMillis() < lastTouch + 2 * 1000)
-				break;
-			else
-				lastTouch = System.currentTimeMillis();
-			/*
-			 * if(evt.getTimeStamp().toMillis(false) +1000*2 <currentTime)
-			 * //2초이내 이벤트 는 무시 return;
-			 */
-
+			RobotLog lastLog =null;
+			if(history_log.size()>1){
+				lastLog=history_log.get(history_log.size()-2);
+				Log.d(TAG,"last Log timeStamp:"+lastLog.getEvent().getTimeStamp().toMillis(false)+" current:"+currentTime);
+				if(lastLog.getEvent().getTimeStamp().toMillis(false) +1000*2 >currentTime) return; /* 2초 안에 같은 event */
+			}
+			
 			ListIterator<RobotLog> it = history_log.listIterator(history_log.size());
 			while (it.hasPrevious()) {
 				RobotLog log = it.previous();
-				if (log.getEvent().getTimeStamp().toMillis(false) + 1000 * 60 * 2 < currentTime) // 2분 이내 내역만
+				if (log.getEvent().getTimeStamp().toMillis(false) + 1000 * 60 * 1 < currentTime) // 1분 이내 내역만
 					break;
 				if (log.getEvent().getType() == RobotEvent.EVT_TOUCH_BODY)
 					++_cntTouch;
 			}
 
-			Log.d(TAG, "total count of body touch:" + _cntTouch + "in 2 min.");
+			Log.d(TAG, "total count of body touch:" + _cntTouch + "in 1 min.");
 
-			if (_cntTouch < /* 6 */100000) {
+			if (_cntTouch < 5) {
 				changeState(new StateTouchResponse(evt.getParam1(), history_log));
-				// changeState(new StateTouchResponse(evt.getParam1(),
-				// history_log));
+				
 			} else {
 				changeState(new StateEvasion(StateEvasion.CAUSE_TOUCH_TOO_MUCH));
 			}
@@ -278,10 +274,10 @@ public class DayTimeBehavior extends RobotBehavior {
 		case RobotEvent.EVT_FACE_DETECTION: {
 			Log.d(TAG, "Face Detection Event");
 
-			changeState(new StateGreeting());
+			changeState(new StateAttraction());
 
 		}
-			break;
+		break;
 
 		}// end of switch
 	}// end of handle

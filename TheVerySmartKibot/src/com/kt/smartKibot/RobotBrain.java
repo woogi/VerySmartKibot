@@ -24,6 +24,13 @@ public class RobotBrain implements IRobotEvtHandler{
 	private BatteryChecker batteryChecker=null;
 	
 	private RobotBehavior dayTimeBehavior;
+	private RobotBehavior testBehavior;
+	private RobotBehavior activeBehavior;
+	private RobotBehavior calmBehavior;
+	private RobotBehavior nightBehavior;
+	
+	
+	private static final boolean _DEBUG=true;
 	
 	private void changeBehavior(RobotBehavior behavior){
 		RobotBehavior oldBehavior=getCurrentBehavior();
@@ -70,6 +77,10 @@ public class RobotBrain implements IRobotEvtHandler{
 		this.history_log=new ArrayList<RobotLog>(MAX_HISTORY_LOG);
 		
 		dayTimeBehavior=new DayTimeBehavior(history_log);
+		testBehavior=new TestBehavior();
+		activeBehavior=new ActiveBehavior();
+		calmBehavior=new CalmBehavior();
+		nightBehavior=new NightTimeBehavior(history_log);
 		
 		//timer handler 등록
 		RobotTimer.getInstance().installHandler(this);
@@ -115,7 +126,55 @@ public class RobotBrain implements IRobotEvtHandler{
 		if(history_log.size()==MAX_HISTORY_LOG) history_log.remove(0);
 		history_log.add(logData);
 		
+		
+		if(evt.getType()==RobotEvent.EVT_TIMER_HOURLY)
+		{
+			if( (evt.getParam1() <7 || evt.getParam1()>=19 ) && !NightTimeBehavior.class.isInstance(behavior) ) 
+			{
+				//forecely change to NightTime behavior
+				changeBehavior(nightBehavior);
+				
+			}
+		}
 			
+		if(evt.getType()==RobotEvent.EVT_TOUCH_SCREEN)
+		{
+			
+			if (DayTimeBehavior.class.isInstance(behavior) ){
+				changeBehavior(calmBehavior);
+				return;
+			}
+			
+			if (CalmBehavior.class.isInstance(behavior) ){
+				changeBehavior(activeBehavior);
+				return;
+			}
+			
+			
+			if (ActiveBehavior.class.isInstance(behavior) ){
+				changeBehavior(nightBehavior);
+				return;
+			}
+			
+			if (NightTimeBehavior.class.isInstance(behavior) ){
+				
+				if(_DEBUG)
+				{
+					changeBehavior(testBehavior);
+				}else
+				{
+					changeBehavior(dayTimeBehavior);
+				}
+				
+				return;
+			}
+			
+			if (TestBehavior.class.isInstance(behavior) ){
+					changeBehavior(dayTimeBehavior);
+				return;
+			}
+			
+		}
 		
 		if(behavior!=null) behavior.handle(ctx!=null?ctx:this.ctx,evt);
 			

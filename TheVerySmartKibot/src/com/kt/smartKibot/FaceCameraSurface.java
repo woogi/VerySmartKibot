@@ -16,14 +16,10 @@ import android.graphics.Rect;
 import android.hardware.Camera;
 import android.hardware.Camera.Parameters;
 import android.hardware.Camera.PreviewCallback;
-import android.os.Handler;
-import android.os.Message;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import android.view.View;
-import android.widget.ImageView;
 
 import com.kt.facerecognition.framework.FaceDetection;
 
@@ -31,16 +27,15 @@ public class FaceCameraSurface extends SurfaceView implements
 	SurfaceHolder.Callback, PreviewCallback, Runnable {
 
     private static final String TAG = "FaceCameraSurface";
-    private static final String DETECTION_DATA_DIR = "detectiondata/";
-    private static final String EYE_DETECTION_DATA_FILE = DETECTION_DATA_DIR
-	    + "haarcascade_eye_tree_eyeglasses.xml";
-    private static final String EYE_DETECTION_DATA_FILE_1 = DETECTION_DATA_DIR
-	    + "haarcascade_eye_tree_eyeglasses1.xml";
-    private static final String EYE_DETECTION_DATA_FILE_2 = DETECTION_DATA_DIR
-	    + "haarcascade_eye_tree_eyeglasses2.xml";
-    private static final String FACE_DETECTION_DATA_FILE = DETECTION_DATA_DIR
-	    + "lbpcascade_frontalface.xml";
+
     private static String DATA_PATH;
+    private static final String DETECTION_DATA_DIR = "detectiondata/";
+    private static final String EYE_DETECTION_DATA_FILE = DETECTION_DATA_DIR + "haarcascade_eye_tree_eyeglasses.xml";
+    private static final String EYE_DETECTION_DATA_FILE_1 = DETECTION_DATA_DIR + "haarcascade_eye_tree_eyeglasses1.xml";
+    private static final String EYE_DETECTION_DATA_FILE_2 = DETECTION_DATA_DIR + "haarcascade_eye_tree_eyeglasses2.xml";
+    private static final String FACE_DETECTION_DATA_FILE = DETECTION_DATA_DIR + "lbpcascade_frontalface.xml";
+
+    private static Context staticContext;
     private final int frameWidth = 640, frameHeight = 480;
     private final int reductCoef = 2;
     private Bitmap bitmap;
@@ -50,32 +45,22 @@ public class FaceCameraSurface extends SurfaceView implements
     private FaceDetection faceDetection;
     private OnFaceDetectListener faceListener;
     private int[] rgba;
-    private boolean stop;
-
-    /* Handling the sample preview */
-    private static ImageView sampleView;
-    private static Handler sampleHandler = new Handler() {
-	public void handleMessage(Message msg) {
-	    switch (msg.what) {
-	    case 0:
-		Bitmap bitmap = (Bitmap) msg.obj;
-		sampleView.setImageBitmap(bitmap);
-		break;
-	    case 1:
-		sampleView.setVisibility(VISIBLE);
-		break;
-	    case 2:
-		sampleView.setVisibility(GONE);
-	    }
-	};
-    };
+    private boolean stopSample, stopSearch;
 
     /* Constructor from layout */
     public FaceCameraSurface(Context context, AttributeSet attrs) {
 	super(context, attrs);
+    }
+
+    /* Constructor */
+    public FaceCameraSurface(Context context) {
+	super(context);
+	staticContext = context;
+	initializeAssets();
 	getHolder().addCallback(this);
 	getHolder().setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
-	stop = true;
+	stopSample = true;
+	stopSearch = true;
     }
 
     /* Interface listener */
@@ -89,26 +74,19 @@ public class FaceCameraSurface extends SurfaceView implements
     }
 
     /* public methods */
-    public void initializeAssets(File filesDir, AssetManager assets) {
-	DATA_PATH = filesDir.getPath() + "/";
-	makeDataDirectory(DETECTION_DATA_DIR);
-	copyAssetsToData(assets, FACE_DETECTION_DATA_FILE);
-	copyAssetsToData(assets, EYE_DETECTION_DATA_FILE,
-		EYE_DETECTION_DATA_FILE_1, EYE_DETECTION_DATA_FILE_2);
-    }
-
     public void start() {
-	stop = false;
-	sampleHandler.sendEmptyMessage(1);
+	stopSample = false;
+	stopSearch = false;
     }
 
     public void stopSample() {
-	stop = true;
-	sampleHandler.sendEmptyMessage(2);
+	stopSample = true;
+	stopSearch = true;
+	RobotActivity.removeSampleView();
     }
 
     public void stopSearch() {
-	stop = true;
+	stopSearch = true;
     }
 
     /* SurfaceHolder.Callback methods implementations */
@@ -129,8 +107,7 @@ public class FaceCameraSurface extends SurfaceView implements
 	    setPreviewDisplay();
 	    startPreview(frameWidth / reductCoef, frameHeight / reductCoef);
 	}
-	sampleView = ((ImageView) ((View) getParent())
-		.findViewById(R.id.camera_sample));
+	RobotActivity.addSampleView();
     }
 
     @Override
@@ -154,7 +131,7 @@ public class FaceCameraSurface extends SurfaceView implements
     /* PreviewCallback method implementation */
     @Override
     public void onPreviewFrame(byte[] data, Camera camera) {
-	if (!stop) {
+	if (!stopSample) {
 	    synchronized (this) {
 		this.data = reducedData(data);
 		this.notify();
@@ -175,14 +152,23 @@ public class FaceCameraSurface extends SurfaceView implements
 	    } catch (InterruptedException e) {
 		Log.e(TAG, "Interrupted: " + e.getMessage());
 	    }
-	    if (bitmap != null) {
-		sampleHandler.sendMessage(sampleHandler
-			.obtainMessage(0, bitmap));
-	    }
+	}
+	if (bitmap != null) {
+	    RobotActivity.displaySample(bitmap);
 	}
     }
 
     /* Private methods */
+    public void initializeAssets() {
+	File filesDir = staticContext.getFilesDir();
+	AssetManager assets = staticContext.getAssets();
+	DATA_PATH = filesDir.getPath() + "/";
+	makeDataDirectory(DETECTION_DATA_DIR);
+	copyAssetsToData(assets, FACE_DETECTION_DATA_FILE);
+	copyAssetsToData(assets, EYE_DETECTION_DATA_FILE,
+		EYE_DETECTION_DATA_FILE_1, EYE_DETECTION_DATA_FILE_2);
+    }
+
     private void makeDataDirectory(String dirName) {
 	File dir = new File(DATA_PATH + dirName);
 	if (!dir.exists()) {
@@ -244,10 +230,7 @@ public class FaceCameraSurface extends SurfaceView implements
     private void setPreviewDisplay() {
     	
 	try {
-	
-	    SurfaceView fakeview = (SurfaceView) ((View) getParent())
-		    .findViewById(R.id.camera_surface);
-		    
+	    SurfaceView fakeview = this;
 	    fakeview.getHolder().setType(
 		    SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
 	    camera.setPreviewDisplay(fakeview.getHolder());
@@ -307,12 +290,12 @@ public class FaceCameraSurface extends SurfaceView implements
 
     private Bitmap processFrame(byte[] data) {
 	Log.i(TAG, "processFrame called");
-	if (stop) {
+	if (stopSample || rgba == null || bitmap == null) {
 	    Log.i(TAG, "processFrame stopped before end");
 	    return null;
 	} else {
 	    Bitmap fullBitmap = getBitmapFromData(data);
-	    if (rgba != null && bitmap != null) {
+	    if (!stopSearch) {
 		faceDetection.getFaceRect(data);
 		if (faceDetection.detectedFaceNumber > 0) {
 		    Log.i(TAG, "face detected");

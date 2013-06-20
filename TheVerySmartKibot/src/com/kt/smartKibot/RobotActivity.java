@@ -3,10 +3,13 @@ package com.kt.smartKibot;
 import java.io.File;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
 import android.speech.tts.TextToSpeech.OnUtteranceCompletedListener;
 import android.util.Log;
 import android.view.Menu;
@@ -14,7 +17,9 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
 import android.view.WindowManager;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
@@ -29,16 +34,21 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 	private boolean DEBUG=true;
 	private int currentFaceMode=RobotFace.MODE_UNKNOWN;
 	IRobotEvtHandler touchEvtHandler=null;
-	private static FaceCameraSurface faceSurface;
+	private static RelativeLayout mainLayout;
+	private static Context ctx;
+	private static FaceCameraSurface cameraSurface;
+	private static ImageView sampleView;
 	private static TextView logView;
-	private View modeIndicator;
+	private static View modeIndicator=null;
+	private static volatile boolean isEnd=false;
+	
 	
 	
 	private static final String baseFacePath = "/system/media/robot/face/";
 	private static final String[] facePaths = { "/face15", "/face16", "/face14", "/face03",
 			"/face13", "/face15", "/face08", "/face02", "/face01", "/face04",
 			"/face09", "/face11", "/face12", "/face10", "/face05", "/face06",
-			"/face07" };
+			"/face07","/face20" };
 	
 	public static final String ACTION_CHANGE_FACE="com.kt.kibot.ChangeFace";
 	public static final String ACTION_FINISH_FACE="com.kt.kibot.FinishFace";
@@ -46,7 +56,7 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 
 	@Override
 	public void finish() {
-		
+		isEnd=true;
 		if (brain != null){ 
 			brain.finalize();
 		    brain=null;
@@ -183,20 +193,30 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 		
 	}
 	
+	static void setModeIndicatorColor(int color){
+		
+		if(isEnd) return;
+		
+    	modeIndicator.setBackgroundColor(color);
+	}
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		
 		Log.d(TAG,"onCreate");
+		
+		isEnd=false;
 		super.onCreate(savedInstanceState);
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 		
 		setContentView(R.layout.main);
 		
-    	faceSurface = (FaceCameraSurface) findViewById(R.id.camera_surface);
-    	faceSurface.initializeAssets(getFilesDir(), getAssets());
+		ctx = this;
+		mainLayout = (RelativeLayout) findViewById(R.id.main_layout);
+                // faceSurface = (FaceCameraSurface) findViewById(R.id.camera_surface);
+                // faceSurface.initializeAssets(getFilesDir(), getAssets());
         	
-    	logView = (TextView) findViewById(R.id.log_view);
-    	((ScrollView) logView.getParent()).setVerticalScrollBarEnabled(false);
+        	logView = (TextView) findViewById(R.id.log_view);
+        	((ScrollView) logView.getParent()).setVerticalScrollBarEnabled(false);
         	
     	modeIndicator=(View)findViewById(R.id.robot_mode);
     	
@@ -402,11 +422,79 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 		}
 	}
 	
-	public static FaceCameraSurface getFaceSurface(){
-	    return faceSurface;
+	private static Handler layoutHandler = new Handler() {
+		public void handleMessage(Message msg) {
+		    switch (msg.what) {
+		    case 0:
+			if (cameraSurface != null){
+        		    mainLayout.addView(cameraSurface);
+			}
+			break;
+		    case 1:
+			if (cameraSurface != null){
+        		    cameraSurface.stopSample();
+        		    mainLayout.removeView(cameraSurface);
+			}
+			break;
+		    case 2:
+			if (sampleView != null) {
+        		    mainLayout.addView(sampleView);
+			}
+			break;
+		    case 3:
+			if (sampleView != null){
+        		    mainLayout.removeView(sampleView);
+        		    sampleView = null;
+			}
+			break;
+		    case 4:
+			if (sampleView != null) {
+			    sampleView.setImageBitmap((Bitmap) msg.obj);
+			}
+			break;
+		    }
+		};
+	    };
+	
+	public static FaceCameraSurface addCameraSurface() {
+	    cameraSurface = new FaceCameraSurface(ctx);
+	    RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(180, 135);
+	    params.topMargin = 10;
+	    params.rightMargin = 10;
+	    params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, RelativeLayout.TRUE);
+	    cameraSurface.setLayoutParams(params);
+	    layoutHandler.sendEmptyMessage(0);
+	    return cameraSurface;
+	}
+
+	public static void removeCameraSurface(){
+	    layoutHandler.sendEmptyMessage(1);
+	}
+
+	public static ImageView addSampleView(){
+	    sampleView = new ImageView(ctx);
+	    RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(180, 135);
+	    params.topMargin = 10;
+	    params.rightMargin = 10;
+	    params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, RelativeLayout.TRUE);
+	    sampleView.setLayoutParams(params);
+	    sampleView.setBackgroundColor(Color.BLACK);
+	    layoutHandler.sendEmptyMessage(2);
+	    return sampleView;
 	}
 	
+	public static void removeSampleView(){
+	    layoutHandler.sendEmptyMessage(3);
+	}
+    
+        public static void displaySample(Bitmap bitmap) {
+            layoutHandler.sendMessage(layoutHandler.obtainMessage(4, bitmap));
+        }
+	
 	 public static void writeLog(String text){
+		 
+		if(isEnd) return;
+		
 	    logView.append(text + "\n");
 	    ((ScrollView) logView.getParent()).fullScroll(View.FOCUS_DOWN);
 	}
