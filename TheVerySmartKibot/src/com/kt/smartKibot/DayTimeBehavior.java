@@ -69,6 +69,13 @@ public class DayTimeBehavior extends RobotBehavior {
 				}
 			}
 
+			if (StateFollowing.class.isInstance(getCurrentState())) {
+			    if (evt.getParam1() == 4) {
+				changeState(new StateSleeping());
+				return;
+			    }
+			}
+
 			if (StateEvasion.class.isInstance(getCurrentState())) {
 				if (evt.getParam1() == 4) {
 					changeState(new StateSleeping());
@@ -242,6 +249,10 @@ public class DayTimeBehavior extends RobotBehavior {
 
 		}
 			break;
+		case RobotEvent.EVT_FACE_RECOGNITION: {
+		    Log.d(TAG, "Face Recognition Event");
+		    changeState(new StateFollowing());
+		} break;
 
 		}// end of switch
 	}// end of handle

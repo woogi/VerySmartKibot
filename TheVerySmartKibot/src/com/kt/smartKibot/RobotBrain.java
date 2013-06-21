@@ -78,7 +78,10 @@ public class RobotBrain implements IRobotEvtHandler{
 		NoiseDetector.getInstance().installHandler(this);
 		
 		//face detector handler
-    	FaceDetector.getInstance().installHandler(this);
+		FaceDetector.getInstance().installHandler(this);
+
+		//face recognizer handler
+		FaceRecognizer.getInstance().installHandler(this);
 
 		//body touch event handler 등록 
 		TouchDetector.getInstance().installHandler(this);

@@ -4,25 +4,24 @@ import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.util.Log;
 
-public class FaceDetector implements IRobotEvtDelegator, CameraSurface.OnFaceDetectListener {
-
-    private static final String TAG = "FaceDetector";
+public class FaceRecognizer implements IRobotEvtDelegator, CameraSurface.OnFaceDetectListener {
+    
+    private static final String TAG = "FaceRecogDetector";
     
     private static CameraSurface cameraSurface;
-    private static boolean faceDetected;
-    private static FaceDetector instance;
+    private static FaceRecognizer instance;
     
     private IRobotEvtHandler handler;
 
     @Override
-    public void onFaceDetected(Bitmap bitmap, int detectedFaceNumber, Rect[] detectedFacePostion) {
+    public void onFaceDetected(Bitmap bitmap, int detectedFaceNumber,
+	    Rect[] detectedFacePostion) {
 	Log.i(TAG, "onFaceDetected");
 	if (cameraSurface != null) {
 	    cameraSurface.stopSearch();
 	}
-	RobotEvent evt = new RobotEvent(RobotEvent.EVT_FACE_DETECTION);
+	RobotEvent evt = new RobotEvent(RobotEvent.EVT_FACE_RECOGNITION);
 	handler.handle(null, evt);
-	faceDetected = true;
     }
 
     @Override
@@ -35,7 +34,7 @@ public class FaceDetector implements IRobotEvtDelegator, CameraSurface.OnFaceDet
     public void uninstallHandler() {
 	Log.i(TAG, "uninstallHandler");
 	stop();
-	handler = null;
+	handler = null;	
     }
 
     @Override
@@ -46,7 +45,6 @@ public class FaceDetector implements IRobotEvtDelegator, CameraSurface.OnFaceDet
 	    cameraSurface.setOnFaceDetectListener(this);
 	    cameraSurface.start();
 	}
-	faceDetected = false;
     }
 
     @Override
@@ -57,17 +55,12 @@ public class FaceDetector implements IRobotEvtDelegator, CameraSurface.OnFaceDet
 	    cameraSurface = null;
 	}
     }
-
-    public static FaceDetector getInstance() {
+    
+    public static FaceRecognizer getInstance(){
 	Log.i(TAG, "instance is " + instance);
 	if (instance == null) {
-	    instance = new FaceDetector();
+	    instance = new FaceRecognizer();
 	}
 	return instance;
-    }
-
-    public static boolean hasDetectedAFace() {
-	Log.i(TAG, "hasDetectedAFace is " + faceDetected);
-	return faceDetected;
     }
 }

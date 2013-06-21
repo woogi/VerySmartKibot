@@ -6,7 +6,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -36,7 +35,6 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 	IRobotEvtHandler touchEvtHandler=null;
 	private static RelativeLayout mainLayout;
 	private static Context ctx;
-	private static FaceCameraSurface cameraSurface;
 	private static ImageView sampleView;
 	private static TextView logView;
 	
@@ -201,8 +199,6 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 		
 		ctx = this;
 		mainLayout = (RelativeLayout) findViewById(R.id.main_layout);
-                // faceSurface = (FaceCameraSurface) findViewById(R.id.camera_surface);
-                // faceSurface.initializeAssets(getFilesDir(), getAssets());
         	
         	logView = (TextView) findViewById(R.id.log_view);
         	((ScrollView) logView.getParent()).setVerticalScrollBarEnabled(false);
@@ -408,74 +404,45 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 		}
 	}
 	
-	private static Handler layoutHandler = new Handler() {
-		public void handleMessage(Message msg) {
-		    switch (msg.what) {
-		    case 0:
-			if (cameraSurface != null){
-        		    mainLayout.addView(cameraSurface);
-			}
-			break;
-		    case 1:
-			if (cameraSurface != null){
-        		    cameraSurface.stopSample();
-        		    mainLayout.removeView(cameraSurface);
-			}
-			break;
-		    case 2:
+	public static Handler UIhandler = new Handler() {
+	    public void handleMessage(Message msg) {
+		switch (msg.what) {
+		case -1: // remove camera surface and sample view
+		    if (msg.obj != null) {
+			mainLayout.removeView((CameraSurface) msg.obj);
 			if (sampleView != null) {
-        		    mainLayout.addView(sampleView);
+			    Log.i("nicolas", "remove sampleView");
+			    mainLayout.removeView(sampleView);
+			    sampleView = null;
 			}
-			break;
-		    case 3:
-			if (sampleView != null){
-        		    mainLayout.removeView(sampleView);
-        		    sampleView = null;
-			}
-			break;
-		    case 4:
-			if (sampleView != null) {
-			    sampleView.setImageBitmap((Bitmap) msg.obj);
-			}
-			break;
 		    }
-		};
+		    break;
+		case 1: // add camera surface
+		    if (msg.obj != null) {
+			mainLayout.addView((CameraSurface) msg.obj);
+		    }
+		    break;
+		case 2: // add sample view
+		    if (sampleView == null) {
+			sampleView = new ImageView(ctx);
+			if (msg.obj != null) {
+			    sampleView.setLayoutParams((RelativeLayout.LayoutParams) msg.obj);
+			}
+			mainLayout.addView(sampleView);
+		    }
+		    break;
+		case 0: // display sample
+		    if (sampleView != null) {
+			sampleView.setImageBitmap((Bitmap) msg.obj);
+		    }
+		    break;
+		}
 	    };
-	
-	public static FaceCameraSurface addCameraSurface() {
-	    cameraSurface = new FaceCameraSurface(ctx);
-	    RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(360, 270);
-	    params.topMargin = 10;
-	    params.rightMargin = 10;
-	    params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, RelativeLayout.TRUE);
-	    cameraSurface.setLayoutParams(params);
-	    layoutHandler.sendEmptyMessage(0);
-	    return cameraSurface;
+	};
+	    
+	public static CameraSurface getCameraSurface(){
+	    return CameraSurface.getInstance(ctx);
 	}
-
-	public static void removeCameraSurface(){
-	    layoutHandler.sendEmptyMessage(1);
-	}
-
-	public static ImageView addSampleView(){
-	    sampleView = new ImageView(ctx);
-	    RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(360, 270);
-	    params.topMargin = 10;
-	    params.rightMargin = 10;
-	    params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, RelativeLayout.TRUE);
-	    sampleView.setLayoutParams(params);
-	    sampleView.setBackgroundColor(Color.BLACK);
-	    layoutHandler.sendEmptyMessage(2);
-	    return sampleView;
-	}
-	
-	public static void removeSampleView(){
-	    layoutHandler.sendEmptyMessage(3);
-	}
-    
-        public static void displaySample(Bitmap bitmap) {
-            layoutHandler.sendMessage(layoutHandler.obtainMessage(4, bitmap));
-        }
 	
 	 public static void writeLog(String text){
 	    logView.append(text + "\n");
