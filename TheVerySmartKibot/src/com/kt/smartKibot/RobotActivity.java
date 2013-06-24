@@ -441,8 +441,8 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 	    };
 	};
 	    
-	public static CameraSurface getCameraSurface(){
-	    return CameraSurface.getInstance(ctx);
+	public static Context getContext() {
+		return ctx;
 	}
 	
 	 public static void writeLog(String text){
