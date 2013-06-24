@@ -244,14 +244,17 @@ public class DayTimeBehavior extends RobotBehavior {
 
 		case RobotEvent.EVT_FACE_DETECTION: {
 			Log.d(TAG, "Face Detection Event");
-
-			changeState(new StateGreeting());
+			if (StateLookAround.class.isInstance(getCurrentState())) {
+			    changeState(new StateGreeting());
+			} else if (StateWandering.class.isInstance(getCurrentState())) {
+			    changeState(new StateFollowing());
+			}
+			
 
 		}
 			break;
 		case RobotEvent.EVT_FACE_RECOGNITION: {
 		    Log.d(TAG, "Face Recognition Event");
-		    changeState(new StateFollowing());
 		} break;
 
 		}// end of switch

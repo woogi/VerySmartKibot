@@ -23,7 +23,7 @@ public class StateWandering implements IRobotState {
 			RobotFace.getInstance(ctx).change(RobotFace.MODE_FUN);
 		}
 
-		FaceRecognizer.getInstance().start();
+		FaceDetector.getInstance().start();
 		isEnd = false;
 	}
 
@@ -100,16 +100,15 @@ public class StateWandering implements IRobotState {
 
 	@Override
 	public void cleanUp(Context ctx) {
-		FaceRecognizer.getInstance().stop();
-		// RobotMotion.getInstance(ctx).stopFreeMove();
-		RobotMotion.getInstance(ctx).stopAll();
-		RobotMotion.getInstance(ctx).offAllLed();
-		RobotMotion.getInstance(ctx).setLogoLEDDimming(0);
+	    FaceDetector.getInstance().stop();
+	    // RobotMotion.getInstance(ctx).stopFreeMove();
+	    RobotMotion.getInstance(ctx).stopAll();
+	    RobotMotion.getInstance(ctx).offAllLed();
+	    RobotMotion.getInstance(ctx).setLogoLEDDimming(0);
 	}
 
 	@Override
 	public void onChanged(Context ctx) {
-
 		isEnd = true;
 	}
 

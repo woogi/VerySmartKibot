@@ -17,19 +17,16 @@ public class StateFollowing implements IRobotState {
 	} else {
 	    RobotFace.getInstance(ctx).change(RobotFace.MODE_EXCITED);
 	}
+	FaceRecognizer.getInstance().start();
 	isEnd = false;
     }
 
     @Override
     public void doAction(Context ctx) {
 	Log.i(TAG, "do action");
+	RobotMotion.getInstance(ctx).setLogoLEDDimming(2);
 	try {
-	    int cnt = 0;
 	    while (!isEnd) {
-		if (cnt == 0) {
-		    RobotMotion.getInstance(ctx).goForward(1, 5);
-		}
-		++cnt;
 		Thread.sleep(100);
 	    }
 	} catch (Exception e) {
@@ -40,6 +37,7 @@ public class StateFollowing implements IRobotState {
     @Override
     public void cleanUp(Context ctx) {
 	Log.i(TAG, "clean up");
+	FaceRecognizer.getInstance().stop();
 	RobotMotion.getInstance(ctx).setLogoLEDDimming(0);
     }
 

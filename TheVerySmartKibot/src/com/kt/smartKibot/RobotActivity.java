@@ -6,6 +6,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -100,7 +101,7 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 		}
 		
 		
-		TouchDetector.getInstance().sendEvent(this, TouchDetector.PARAM_LEFT_EAR_PATTED);
+//		TouchDetector.getInstance().sendEvent(this, TouchDetector.PARAM_LEFT_EAR_PATTED);
 	}
 	
 	@Override
@@ -411,10 +412,14 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 		    if (msg.obj != null) {
 			mainLayout.removeView((CameraSurface) msg.obj);
 			if (sampleView != null) {
-			    Log.i("nicolas", "remove sampleView");
 			    mainLayout.removeView(sampleView);
 			    sampleView = null;
 			}
+		    }
+		    break;
+		case 0: // display sample
+		    if (sampleView != null) {
+			sampleView.setImageBitmap((Bitmap) msg.obj);
 		    }
 		    break;
 		case 1: // add camera surface
@@ -428,12 +433,8 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 			if (msg.obj != null) {
 			    sampleView.setLayoutParams((RelativeLayout.LayoutParams) msg.obj);
 			}
+			sampleView.setBackgroundColor(Color.BLACK);
 			mainLayout.addView(sampleView);
-		    }
-		    break;
-		case 0: // display sample
-		    if (sampleView != null) {
-			sampleView.setImageBitmap((Bitmap) msg.obj);
 		    }
 		    break;
 		}

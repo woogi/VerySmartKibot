@@ -3,6 +3,7 @@ package com.kt.smartKibot;
 import java.util.ArrayList;
 
 import android.content.Context;
+import android.util.Log;
 
 public class StateLookAround implements IRobotState {
 
@@ -10,7 +11,7 @@ public class StateLookAround implements IRobotState {
 	private boolean _DEBUG = true;
 	private volatile boolean isEnd = false;
 	private RobotEvent cause = null;
-
+	
 	@Override
 	public void onStart(Context ctx) {
 		// TODO Auto-generated method stub

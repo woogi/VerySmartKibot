@@ -33,19 +33,23 @@ public class NoiseDetector implements IRobotEvtDelegator ,NoiseCheckThread.OnNoi
 
 	@Override
 	public void start(){
+	    synchronized(this) {
 		noiseCheckThread=new NoiseCheckThread(null);
 		noiseCheckThread.start();
 		noiseCheckThread.setOnNoiseListener(this);
+	    }
 	}
 	
 	@Override
 	public void stop(){
+	    synchronized(this) {
 		if(noiseCheckThread!=null) noiseCheckThread.stopRunning();
 		try {
 			Thread.sleep(100);
 		} catch(Exception e) {}
 		
 		noiseCheckThread=null;
+	    }
 	}
 	
 	@Override

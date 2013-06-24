@@ -28,7 +28,7 @@ import com.kt.facerecognition.framework.FaceDetection;
 public class CameraSurface extends SurfaceView implements
 	SurfaceHolder.Callback, PreviewCallback, Runnable {
 
-    private static final String TAG = "FaceCameraSurface";
+    private static final String TAG = "CameraSurface";
     private static final int FRAME_WIDTH = 640, FRAME_HEIGHT = 480;
 
     private static String DATA_PATH;
@@ -79,7 +79,6 @@ public class CameraSurface extends SurfaceView implements
 
     /* Set listener */
     public void setOnFaceDetectListener(OnFaceDetectListener listener) {
-	Log.i("nicolas", "listener is " + listener);
 	faceListener = listener;
     }
 
@@ -104,7 +103,11 @@ public class CameraSurface extends SurfaceView implements
 
     public void stopSample() {
 	Log.i(TAG, "stop sample");
-	if (!reusing) {
+	if (reusing) {
+	    Log.i(TAG, "reusing sample");
+	    reusing = false;
+	} else {
+	    Log.i(TAG, "not reusing sample");
 	    stopSample = true;
 	    stopSearch = true;
 	    /* Remove UI */
@@ -114,7 +117,6 @@ public class CameraSurface extends SurfaceView implements
 	    RobotActivity.UIhandler.sendMessage(msg);
 	    instance = null;
 	}
-	reusing = false;
     }
 
     public void stopSearch() {
@@ -277,8 +279,7 @@ public class CameraSurface extends SurfaceView implements
 
 	try {
 	    SurfaceView fakeview = this;
-	    fakeview.getHolder().setType(
-		    SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
+	    fakeview.getHolder().setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
 	    camera.setPreviewDisplay(fakeview.getHolder());
 	} catch (IOException e) {
 	    Log.e(TAG, "Setting camera preview failed: " + e.getMessage());
@@ -288,8 +289,7 @@ public class CameraSurface extends SurfaceView implements
     private void startPreview(int width, int height) {
 	rgba = new int[width * height];
 	try {
-	    bitmap = Bitmap
-		    .createBitmap(width, height, Bitmap.Config.ARGB_8888);
+	    bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
 	} catch (OutOfMemoryError e) {
 	    Log.e(TAG, "Bitmap Out of Memory: " + e.getMessage());
 	    bitmap.recycle();
@@ -340,9 +340,10 @@ public class CameraSurface extends SurfaceView implements
 	} else {
 	    Bitmap fullBitmap = getBitmapFromData(data);
 	    if (!stopSearch) {
+		Log.i(TAG, "processFrame --> search");
 		faceDetection.getFaceRect(data);
 		if (faceDetection.detectedFaceNumber > 0) {
-		    Log.i(TAG, "face detected");
+		    Log.i(TAG, "processFrame --> face detected");
 		    if (faceListener != null) {
 			faceListener.onFaceDetected(fullBitmap,
 				faceDetection.detectedFaceNumber,

@@ -2,20 +2,20 @@ package com.kt.smartKibot;
 
 import android.graphics.Bitmap;
 import android.graphics.Rect;
+import android.net.Uri;
 import android.util.Log;
 
 public class FaceRecognizer implements IRobotEvtDelegator, CameraSurface.OnFaceDetectListener {
-    
-    private static final String TAG = "FaceRecogDetector";
-    
+
+    private static final String TAG = "FaceRecognizer";
+
     private static CameraSurface cameraSurface;
     private static FaceRecognizer instance;
-    
+
     private IRobotEvtHandler handler;
 
     @Override
-    public void onFaceDetected(Bitmap bitmap, int detectedFaceNumber,
-	    Rect[] detectedFacePostion) {
+    public void onFaceDetected(Bitmap bitmap, int detectedFaceNumber, Rect[] detectedFacePostion) {
 	Log.i(TAG, "onFaceDetected");
 	if (cameraSurface != null) {
 	    cameraSurface.stopSearch();
@@ -52,10 +52,9 @@ public class FaceRecognizer implements IRobotEvtDelegator, CameraSurface.OnFaceD
 	Log.i(TAG, "stop");
 	if (cameraSurface != null) {
 	    cameraSurface.stopSample();
-	    cameraSurface = null;
 	}
     }
-    
+
     public static FaceRecognizer getInstance(){
 	Log.i(TAG, "instance is " + instance);
 	if (instance == null) {
@@ -63,4 +62,18 @@ public class FaceRecognizer implements IRobotEvtDelegator, CameraSurface.OnFaceD
 	}
 	return instance;
     }
+
+    private class DetectedFaceProperties {
+	    public Rect rect;
+	    public String tagName;
+	    public int friendLevel;
+	    public Uri imageUri;
+
+	    public DetectedFaceProperties() {
+		rect = null;
+		tagName = null;
+		friendLevel = 0;
+		imageUri = null;
+	    }
+	}
 }

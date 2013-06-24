@@ -9,9 +9,9 @@ public class FaceDetector implements IRobotEvtDelegator, CameraSurface.OnFaceDet
     private static final String TAG = "FaceDetector";
     
     private static CameraSurface cameraSurface;
-    private static boolean faceDetected;
     private static FaceDetector instance;
     
+    private boolean faceDetected;
     private IRobotEvtHandler handler;
 
     @Override
@@ -54,7 +54,6 @@ public class FaceDetector implements IRobotEvtDelegator, CameraSurface.OnFaceDet
 	Log.i(TAG, "stop");
 	if (cameraSurface != null) {
 	    cameraSurface.stopSample();
-	    cameraSurface = null;
 	}
     }
 
@@ -66,8 +65,8 @@ public class FaceDetector implements IRobotEvtDelegator, CameraSurface.OnFaceDet
 	return instance;
     }
 
-    public static boolean hasDetectedAFace() {
-	Log.i(TAG, "hasDetectedAFace is " + faceDetected);
+    public boolean isFaceDetected() {
+	Log.i(TAG, "isFaceDetected ? " + faceDetected);
 	return faceDetected;
     }
 }
