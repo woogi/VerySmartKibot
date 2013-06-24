@@ -27,6 +27,7 @@ public class StateFollowing implements IRobotState {
 		RobotMotion.getInstance(ctx).setLogoLEDDimming(2);
 		try {
 			while (!isEnd) {
+				// TODO Robot Motion
 				Thread.sleep(100);
 			}
 		} catch (Exception e) {

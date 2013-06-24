@@ -6,10 +6,11 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Vector;
 
+import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.graphics.Rect;
 import android.graphics.Bitmap.CompressFormat;
+import android.graphics.Rect;
 import android.net.Uri;
 import android.util.Log;
 
@@ -18,11 +19,13 @@ import com.kt.facerecognition.framework.FaceRecognition;
 public class FaceRecognizer implements IRobotEvtDelegator, CameraSurface.OnFaceDetectListener {
 
 	private static final String TAG = "FaceRecognizer";
+	private static final String N = "nicolas";
 
 	private static CameraSurface cameraSurface;
 	private static FaceRecognizer instance;
 
 	// private IRobotEvtHandler handler;
+	private CameraTagDatabase database;
 	private String loggedName;
 	private Rect reference;
 	private int tolerance;
@@ -54,11 +57,14 @@ public class FaceRecognizer implements IRobotEvtDelegator, CameraSurface.OnFaceD
 	@Override
 	public void start() {
 		Log.i(TAG, "start");
-		cameraSurface = CameraSurface.getInstance(RobotActivity.getContext());
+		Context ctx = RobotActivity.getContext();
+		cameraSurface = CameraSurface.getInstance(ctx);
 		if (cameraSurface != null) {
 			cameraSurface.setOnFaceDetectListener(this);
 			cameraSurface.start();
 		}
+		/* init database */
+		database = new CameraTagDatabase(ctx);
 		/* init logged name */
 		loggedName = null;
 		/* init tolerance */
@@ -89,7 +95,6 @@ public class FaceRecognizer implements IRobotEvtDelegator, CameraSurface.OnFaceD
 	}
 
 	private void handleDetectedFaces(Bitmap bitmap, int detectedFaceNumber, Rect[] detectedFacePostion) {
-		Log.i(TAG, "handle detected faces (" + detectedFaceNumber + ")");
 		Vector<DetectedFaceProperties> faces = new Vector<DetectedFaceProperties>();
 		DetectedFaceProperties bestFace = new DetectedFaceProperties();
 		for (int i = 0; i < detectedFaceNumber; i++) {
@@ -114,12 +119,19 @@ public class FaceRecognizer implements IRobotEvtDelegator, CameraSurface.OnFaceD
 			faces.add(face);
 			bestFace = chooseBestFace(face, bestFace);
 		}
+		/* if no one is logged in, register new log name in database */
 		if (loggedName == null) {
-			/* if no one is logged in, register new log name in database */
-			if (bestFace.tagName == null) {
-				// TODO add new face with new tag in database
+			if (bestFace.tagName == null) { //TODO
+				String num = CameraUtils.getNextFileNum(Config.SAVE_FACES_PATH);
+				loggedName = "name_" + num;
+				String imagePath = Config.SAVE_FACES_PATH + num;
+				if (CameraUtils.registerName(database, loggedName) && CameraUtils.registerImage(bestFace.imageUri, imagePath)) {
+					CameraUtils.addItemToDatabase(database, loggedName, imagePath, 0);
+					Log.i(N, "<follow> new name in db : " + loggedName);
+				}
 			} else {
 				loggedName = bestFace.tagName;
+				Log.i(N, "<follow> name already in db : " + loggedName);
 			}
 		}
 		if (bestFace != null) {
@@ -154,7 +166,7 @@ public class FaceRecognizer implements IRobotEvtDelegator, CameraSurface.OnFaceD
 		Cursor cursorClass = null;
 		/* if predectedClass > 0 face has been recognized */
 		if (predictedClass > 0) {
-			cursorClass = new CameraTagDatabase(RobotActivity.getContext()).getClassIDMatches(predictedClass);
+			cursorClass = database.getClassIDMatches(predictedClass);
 		}
 		/* return cursor to browse db and null if not known */
 		return cursorClass;
@@ -185,23 +197,22 @@ public class FaceRecognizer implements IRobotEvtDelegator, CameraSurface.OnFaceD
 
 	private void letsMove(Rect current) {
 		/*
-		 * Movement algorithm according to the face tracking. It calculates the
-		 * leading difference between the horizontal one (LEFT-RIGHT) and the
-		 * vertical one (FWD-BACK) If the deduced movement is already the
-		 * current movement, no need to tell again to move
+		 * Movement algorithm according to the face tracking.
+		 * It calculates the leading difference between the horizontal one (LEFT-RIGHT) and the vertical one (FWD-BACK)
+		 * If the deduced movement is already the current movement, no need to tell again to move
 		 */
 		int deltaX = (current.left - reference.left);
 		int deltaY = (current.width() - reference.width());
 		if (Math.abs(deltaX) > 2 * Math.abs(deltaY) && deltaX > 2 * tolerance) {
-			Log.i(TAG, "LEFT"); // TODO LEFT
+			Log.i(N, "LEFT"); // TODO LEFT
 		} else if (Math.abs(deltaX) > 2 * Math.abs(deltaY) && deltaX < -2 * tolerance) {
-			Log.i(TAG, "RIGHT"); // TODO RIGHT
+			Log.i(N, "RIGHT"); // TODO RIGHT
 		} else if (2 * Math.abs(deltaY) > Math.abs(deltaX) && deltaY > tolerance) {
-			Log.i(TAG, "BACK"); // TODO BACK
+			Log.i(N, "BACK"); // TODO BACK
 		} else if (2 * Math.abs(deltaY) > Math.abs(deltaX) && deltaY < -tolerance) {
-			Log.i(TAG, "FWD"); // TODO FWD
+			Log.i(N, "FWD"); // TODO FWD
 		} else {
-			Log.i(TAG, "STOP"); // TODO STOP
+			Log.i(N, "STOP"); // TODO STOP
 		}
 	}
 

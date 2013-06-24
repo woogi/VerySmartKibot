@@ -1,14 +1,9 @@
 package com.kt.smartKibot;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
@@ -46,7 +41,7 @@ public class CameraSurface extends SurfaceView implements SurfaceHolder.Callback
 	public CameraSurface(Context context) {
 		super(context);
 		ctx = context;
-		initializeAssets();
+		CameraUtils.initializeAssets(ctx);
 		getHolder().addCallback(this);
 		getHolder().setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
 		stopSample = true;
@@ -199,62 +194,6 @@ public class CameraSurface extends SurfaceView implements SurfaceHolder.Callback
 	}
 
 	/* Private methods */
-	public void initializeAssets() {
-		File filesDir = ctx.getFilesDir();
-		AssetManager assets = ctx.getAssets();
-		Config.DATA_PATH = filesDir.getPath() + "/";
-		makeDataDirectory(Config.DETECTION_DATA_DIR);
-		copyAssetsToData(assets, Config.FACE_DETECTION_DATA_FILE);
-		copyAssetsToData(assets, Config.EYE_DETECTION_DATA_FILE, Config.EYE_DETECTION_DATA_FILE_1, Config.EYE_DETECTION_DATA_FILE_2);
-	}
-
-	private void makeDataDirectory(String dirName) {
-		File dir = new File(Config.DATA_PATH + dirName);
-		if (!dir.exists()) {
-			dir.mkdir();
-		}
-	}
-
-	private void copyAssetsToData(AssetManager assets, String assetFileName) {
-		try {
-			InputStream in = assets.open(assetFileName);
-			OutputStream out = new FileOutputStream(Config.DATA_PATH + assetFileName);
-			byte[] buf = new byte[1024];
-			int read;
-
-			while ((read = in.read(buf)) != -1) {
-				out.write(buf, 0, read);
-			}
-			in.close();
-			out.flush();
-			out.close();
-		} catch (IOException e) {
-			Log.e(TAG, e.getMessage());
-		}
-	}
-
-	private void copyAssetsToData(AssetManager assets, String destFileName, String assetFileName1, String assetFileName2) {
-		try {
-			InputStream inPart1 = assets.open(assetFileName1);
-			InputStream inPart2 = assets.open(assetFileName2);
-			OutputStream out = new FileOutputStream(Config.DATA_PATH + destFileName);
-			byte[] buf = new byte[1024];
-			int read;
-			while ((read = inPart1.read(buf)) != -1) {
-				out.write(buf, 0, read);
-			}
-			while ((read = inPart2.read(buf)) != -1) {
-				out.write(buf, 0, read);
-			}
-			inPart1.close();
-			inPart2.close();
-			out.flush();
-			out.close();
-		} catch (IOException e) {
-			Log.e(TAG, e.getMessage());
-		}
-	}
-
 	private void allocateBuffer() {
 		int bitsPerPixel = ImageFormat.getBitsPerPixel(camera.getParameters().getPreviewFormat());
 		int w = Config.FRAME_WIDTH;
