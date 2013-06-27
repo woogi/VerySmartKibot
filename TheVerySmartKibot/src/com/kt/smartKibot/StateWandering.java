@@ -10,9 +10,18 @@ public class StateWandering implements IRobotState {
 	private boolean _DEBUG = true;
 	private volatile boolean isEnd = false;
 	private RobotEvent cause = null;
+	public static int MODE_CALM=0;
+	public static int MODE_ACTIVE=1;
+	private int mode=MODE_CALM;
 
 	StateWandering(RobotEvent cause, ArrayList<RobotLog> log) {
 		this.cause = cause;
+		this.mode=MODE_CALM;
+	}
+	
+	StateWandering(int mode,RobotEvent cause, ArrayList<RobotLog> log) {
+		this.cause = cause;
+		this.mode=mode;
 	}
 
 	@Override
@@ -23,7 +32,7 @@ public class StateWandering implements IRobotState {
 			RobotFace.getInstance(ctx).change(RobotFace.MODE_FUN);
 		}
 
-		FaceDetector.getInstance().start();
+		//FaceDetector.getInstance().start();
 		isEnd = false;
 	}
 
@@ -46,26 +55,29 @@ public class StateWandering implements IRobotState {
 
 			while (!isEnd) {
 				int rand = (int) (Math.random() * 70l);
-				if (rand == 1)
+				int lastDirection=-1;
+				if (rand == 1 && (mode==MODE_ACTIVE))
 					RobotSpeech.getInstance(ctx).speak("고!", 1.0f, 1.3f);
 				
 				if(++cnt==10) {
 					rand = (int) (Math.random() * 5l);
-					if(rand==0) {
+					if(rand==0 && (mode==MODE_ACTIVE) ) {
 						RobotMotion.getInstance(ctx).stopWheel();
 						RobotMotion.getInstance(ctx).goForward(1, 1);
 					}
-					else if(rand==1) {
+					else if(rand==1 && (mode==MODE_ACTIVE)) {
 						RobotMotion.getInstance(ctx).stopWheel();
 						RobotMotion.getInstance(ctx).goBack(1, 1);
 					}
-					else if(rand==2) {
+					else if(rand==2 && lastDirection!=2) {
 						RobotMotion.getInstance(ctx).stopWheel();
-						RobotMotion.getInstance(ctx).turnRight(1);
+						RobotMotion.getInstance(ctx).turnRight(1,20);
+						lastDirection=2;
 					}
-					else if(rand==3) {
+					else if(rand==3 && lastDirection!=3) {
 						RobotMotion.getInstance(ctx).stopWheel();
-						RobotMotion.getInstance(ctx).turnRight(1);
+						RobotMotion.getInstance(ctx).turnLeft(1,20);
+						lastDirection=3;
 					}
 					else if(rand==4) {
 						RobotMotion.getInstance(ctx).stopWheel();
@@ -100,7 +112,7 @@ public class StateWandering implements IRobotState {
 
 	@Override
 	public void cleanUp(Context ctx) {
-		FaceDetector.getInstance().stop();
+		//FaceDetector.getInstance().stop();
 		// RobotMotion.getInstance(ctx).stopFreeMove();
 		RobotMotion.getInstance(ctx).stopAll();
 		RobotMotion.getInstance(ctx).offAllLed();

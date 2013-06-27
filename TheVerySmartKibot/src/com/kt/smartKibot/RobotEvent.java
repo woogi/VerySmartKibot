@@ -23,6 +23,8 @@ public class RobotEvent {
 	public static final int EVT_TOUCH_BODY=6;
 	public static final int EVT_FACE_DETECTION=7;
 	public static final int EVT_TOUCH_SCREEN=8;
+	public static final int EVT_LONG_PRESS_SCREEN=9;
+	public static final int EVT_SWIPE_SCREEN=10;
 
 	
 	

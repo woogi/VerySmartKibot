@@ -122,7 +122,7 @@ public class StateScheduleBriefing implements IRobotState {
 }
 
 class Schedule{
-	
+	private static String TAG="Schedule";
 	Uri calendarUri;
 	String[] projection;
 	int thisMonth;
@@ -183,6 +183,29 @@ class Schedule{
 			
 			Cursor managedCursor = ctx.getContentResolver().query(calendarUri, projection,"dtstart>="+minDate+" AND dtstart<"+maxDate,
 				null, null) ;
+			
+			//c.set(Calendar.HOUR_OF_DAY,targetHour);
+			int fromHour=targetHour;
+			
+			if(fromHour>12)
+			{
+				fromHour=fromHour%12;
+			}
+			
+			int toHour=targetHour+1;
+			
+			if(toHour>12)
+			{
+				toHour=toHour%12;
+			}
+			
+			
+			
+			//c.set(Calendar.HOUR_OF_DAY,targetHour+1);
+			//int toHour=c.get(Calendar.HOUR);
+			
+			Log.d(TAG,"tagetHour:"+targetHour+" fromHour:"+fromHour+" toHour:"+toHour);
+			
 				
 			if(managedCursor.moveToFirst()) {
 				
@@ -254,7 +277,8 @@ class Schedule{
 				msg="소장님, 일정을 알려 드릴께요 ";
 				
 				msg+=thisMonth+"월"+ thisDate+"일 오늘 ";
-				msg+=""+targetHour%12 +"시 부터 "+ (targetHour+1)%12 +"시 까지 ";
+				
+				msg+=""+fromHour +"시 부터 "+ toHour +"시 까지 ";
 				msg+="총 "+managedCursor.getCount()+" 건의 일정이 있습니다.";
 				
 				if(title.length>0)
@@ -285,14 +309,14 @@ class Schedule{
 						
 					}
 				
-				msg+="이상 입니다.";
+				msg+=" 이상 입니다.";
 				}
 			}
 			else{
 				//schedule is empty
 				msg="소장님,일정을 알려 드릴께요 ";
 				msg+=thisMonth+"월"+ thisDate+"일 오늘 ";
-				msg+=""+targetHour%12 +"시 부터 "+ (targetHour+1)%12 +"시 까지는 ";
+				msg+=""+fromHour +"시 부터 "+ toHour+"시 까지는 ";
 				msg+="일정이 없습니다.";
 			}
 			

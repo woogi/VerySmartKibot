@@ -12,6 +12,7 @@ public class TestBehavior extends RobotBehavior {
 
 	private static final String TAG = "TestBehavior";
 	private volatile boolean isEnd = false;
+	static int targetHour=15;//오후3시 일정부터 차례 대로 
 	
 	@Override
 	public void onStart(Context ctx) {
@@ -19,7 +20,7 @@ public class TestBehavior extends RobotBehavior {
 		
 		isEnd=false;
 		
-		RobotActivity.setModeIndicatorColor(Color.BLACK);
+		RobotActivity.setModeIndicatorColor(Color.MAGENTA,"테스트");
 		RobotTimer.getInstance().start();
 		changeState(new StateSleeping());
 	
@@ -37,12 +38,11 @@ public class TestBehavior extends RobotBehavior {
 
 		switch (evt.getType()) 
 		{
-		
-			
 
 		case RobotEvent.EVT_TIMER:
 			if (StateGreeting.class.isInstance(getCurrentState())) {
 				if (evt.getParam1() == 2 ) {
+					int random=(int)(Math.random()*11)+9;
 						changeState(new StateAttraction());
 					return;
 				}
@@ -50,40 +50,65 @@ public class TestBehavior extends RobotBehavior {
 			
 			if(StateAttraction.class.isInstance(getCurrentState())){
 				if (evt.getParam1() == 2 ) {
-					int random=(int)(Math.random()*11)+9;
+					//int random=(int)(Math.random()*11)+9;
 					
-					if(random==19){
+					if(targetHour==19){
 						changeState(new StateScheduleBriefing(StateScheduleBriefing.DAILY));
+						targetHour=0;
 					}else{
-						changeState(new StateScheduleBriefing(StateScheduleBriefing.HOURLY,random));
+						changeState(new StateScheduleBriefing(StateScheduleBriefing.HOURLY,targetHour++));
 					}
 					return;
 				}
 			}
 			
 			if(StateScheduleBriefing.class.isInstance(getCurrentState())){
-				if (evt.getParam1() >= 4 && RobotSpeech.getInstance(ctx).isSpeaking()==false) {
-					changeState(new StateBye());
+				
+				if(targetHour!=0)
+				{
+					if(targetHour==19){
+						changeState(new StateScheduleBriefing(StateScheduleBriefing.DAILY));
+						targetHour=0;
+					}else{
+						changeState(new StateScheduleBriefing(StateScheduleBriefing.HOURLY,targetHour++));
+					}
 					return;
+				}
+				else{
+					
+					if (evt.getParam1() >= 4 && RobotSpeech.getInstance(ctx).isSpeaking()==false) {
+						targetHour=15;
+						changeState(new StateBye());
+						return;
+					}
 				}
 			}
 			
 			if(StateBye.class.isInstance(getCurrentState())){
 				if (evt.getParam1() >= 4 && RobotSpeech.getInstance(ctx).isSpeaking()==false) {
-					changeState(new StateWandering(evt,history_log));
+					int random=(int)(Math.random()*2);
+					if(random==0){
+						changeState(new StateWandering(evt,history_log));
+					}else
+					{
+						changeState(new StateWandering(StateWandering.MODE_ACTIVE,evt,history_log));
+					}
 					return;
 				}
 			}
 
 			if (StateWandering.class.isInstance(getCurrentState())) {
 				if (evt.getParam1() == 2) {
-					int random=(int)(Math.random()*2l);
+					int random=(int)(Math.random()*3l);
 					
 					if(random==0){
 						changeState(new StateEvasion(StateEvasion.CAUSE_BIG_NOISE));
 					}
-					else{
+					else if(random==1){
 						changeState(new StateEvasion(StateEvasion.CAUSE_TOUCH_TOO_MUCH));
+					}
+					else{
+						changeState(new StateEvasion(StateEvasion.CAUSE_SLEEPY));
 					}
 					
 					return;
@@ -124,8 +149,10 @@ public class TestBehavior extends RobotBehavior {
 			}
 			
 			if (StateTouchResponse.class.isInstance(getCurrentState())) {
-				if (evt.getParam1() == 2) {
-					changeState(new StateGreeting());
+				if (evt.getParam1() == 2) 
+				{
+					int rand=(int) (Math.random()*(long)StateGreeting.CAUSE_GOOD_AFTERNOON)+StateGreeting.CAUSE_HELLO; 
+					changeState(new StateGreeting(rand));
 					return;
 				}
 			}

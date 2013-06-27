@@ -34,7 +34,7 @@ public class StateBye implements IRobotState {
 		
 		String msg=new String();
 		wInfo.refresh();
-		WeatherStatus status=wInfo.status.get(0);
+		//WeatherStatus status=wInfo.status.get(0);
 		WeatherStatus st=wInfo.getInfoHourly(18,WeatherStatus.TODAY);
 		
 		msg="소장님, 오늘도 수고  하셨습니다. ";

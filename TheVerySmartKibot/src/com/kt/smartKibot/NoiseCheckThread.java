@@ -9,13 +9,14 @@ import android.util.Log;
 public class NoiseCheckThread extends Thread {
 	AudioRecord audioRecord=null;
 	OnNoiseListener noiseListener=null;
-	boolean isRecording = false;
+	private volatile boolean isRecording = false;
 	int threshold=500;
 	int frequency = 11025;
 	int channelConfiguration = AudioFormat.CHANNEL_IN_MONO;
 	int audioEncoding = AudioFormat.ENCODING_PCM_16BIT;
 
 	public NoiseCheckThread(Context context) {
+		setName("NoiseCheckThread");
 		
 	}
 
@@ -38,8 +39,11 @@ public class NoiseCheckThread extends Thread {
 		buffer = new short[bufferSize];
 		audioRecord.startRecording();
 		isRecording=true;
+		
+		
+		try{
 
-		while (isRecording) {
+		while (isRecording && audioRecord.getRecordingState()==AudioRecord.RECORDSTATE_RECORDING) {
 			int bufferReadResult = audioRecord.read(buffer, 0, bufferSize);
 
 			psum=0;
@@ -66,10 +70,16 @@ public class NoiseCheckThread extends Thread {
 			}
 		}
 		
-		audioRecord.stop();
-		audioRecord.release();
-		audioRecord=null;
-		Log.d("NoiseCheckThread","### NoiseCheckThread stopping...");
+		}
+		finally
+		{
+			audioRecord.stop();
+			audioRecord.release();
+			audioRecord=null;
+			Log.d("NoiseCheckThread","### NoiseCheckThread stopping...");
+			
+		}
+		
 	}
 	
 	public void stopRunning() {

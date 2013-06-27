@@ -24,7 +24,7 @@ public class RobotSpeech implements OnInitListener{
 	private float speed=1.0f;
 	
 	private Context ctx;
-	boolean showToast=true;
+	boolean showToast=false;
 	
 	
 	private RobotSpeech(Context ctx){

@@ -24,7 +24,7 @@ public class NightTimeBehavior extends RobotBehavior {
 		
 		isEnd=false;
 		
-		RobotActivity.setModeIndicatorColor(Color.GRAY);
+		RobotActivity.setModeIndicatorColor(Color.GRAY,"야간");
 		changeState(new StateSleeping());
 		RobotTimer.getInstance().start();
 	

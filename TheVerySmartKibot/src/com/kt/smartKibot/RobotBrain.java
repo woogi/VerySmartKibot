@@ -78,8 +78,8 @@ public class RobotBrain implements IRobotEvtHandler{
 		
 		dayTimeBehavior=new DayTimeBehavior(history_log);
 		testBehavior=new TestBehavior();
-		activeBehavior=new ActiveBehavior();
-		calmBehavior=new CalmBehavior();
+		activeBehavior=new ActiveBehavior(history_log);
+		calmBehavior=new CalmBehavior(history_log);
 		nightBehavior=new NightTimeBehavior(history_log);
 		
 		//timer handler 등록
@@ -99,7 +99,8 @@ public class RobotBrain implements IRobotEvtHandler{
 		batteryChecker=new BatteryChecker(ctx);
 		batteryChecker.installHandler(this);
 		batteryChecker.start();
-						changeBehavior(dayTimeBehavior);
+				
+		changeBehavior(dayTimeBehavior);
 	}
 
 	@Override
@@ -136,9 +137,8 @@ public class RobotBrain implements IRobotEvtHandler{
 				
 			}
 		}
-			
-		if(evt.getType()==RobotEvent.EVT_TOUCH_SCREEN)
-		{
+		
+		if(evt.getType()==RobotEvent.EVT_LONG_PRESS_SCREEN){
 			
 			if (DayTimeBehavior.class.isInstance(behavior) ){
 				changeBehavior(calmBehavior);
@@ -157,22 +157,45 @@ public class RobotBrain implements IRobotEvtHandler{
 			}
 			
 			if (NightTimeBehavior.class.isInstance(behavior) ){
-				
-				if(_DEBUG)
-				{
-					changeBehavior(testBehavior);
-				}else
-				{
 					changeBehavior(dayTimeBehavior);
-				}
-				
 				return;
-			}
+				}
 			
 			if (TestBehavior.class.isInstance(behavior) ){
 					changeBehavior(dayTimeBehavior);
 				return;
 			}
+		}
+		
+		
+		if(evt.getType()==RobotEvent.EVT_SWIPE_SCREEN)
+		{
+			switch(evt.getParam1())
+			{
+				case 0://right to left
+					changeBehavior(testBehavior);// no need to send events to behavior.
+					return;
+					//break;
+					
+				case 1:// left to right
+					changeBehavior(dayTimeBehavior);
+					return;
+					//break;
+					
+				case 2: //down to up
+					RobotActivity.showDbgLogScreen(true);
+					break;
+					
+				case 3: //up to down
+					RobotActivity.showDbgLogScreen(false);
+					break;
+			}
+			
+		}
+			
+		if(evt.getType()==RobotEvent.EVT_TOUCH_SCREEN)
+		{
+			
 			
 		}
 		

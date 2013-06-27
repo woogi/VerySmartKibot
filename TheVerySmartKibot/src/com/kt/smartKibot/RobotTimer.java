@@ -12,7 +12,7 @@ public class RobotTimer implements IRobotEvtDelegator {
 	
 	
 	private IRobotEvtHandler handler;
-	private Timer _t=null;
+	private volatile Timer _t=null;
 	
 	private static RobotTimer _this;
 	
@@ -82,7 +82,7 @@ public class RobotTimer implements IRobotEvtDelegator {
 				Log.d(TAG,"EVT_TIMER_HOURLY hour:"+thisHour);
 				
 				//it's dangerous... after destorying main activity...????
-				RobotActivity.writeLog("EVT_TIMER_HOURLY hour:"+thisHour);
+				//RobotActivity.writeLog("EVT_TIMER_HOURLY hour:"+thisHour);
 				lastHour=thisHour;
 				reset();
 			}

@@ -1,18 +1,23 @@
 package com.kt.smartKibot;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 import android.util.Log;
 
 public class NoiseDetector implements IRobotEvtDelegator ,NoiseCheckThread.OnNoiseListener{
 
 	private static NoiseDetector _this;
 	private IRobotEvtHandler handler=null;
-	private NoiseCheckThread noiseCheckThread=null;
+	volatile private NoiseCheckThread noiseCheckThread=null;
 	static final String TAG="NoiseDetector";
 	
 	// param1 definition for noise detection event
 	public static final int PARAM_SMALL_NOISE=0;
 	public static final int PARAM_BIG_NOISE=1;
 	
+	static final Lock lock= new ReentrantLock(); 
+		
 	static NoiseDetector getInstance(){
 		
 		if(_this==null) _this=new NoiseDetector();
@@ -23,7 +28,6 @@ public class NoiseDetector implements IRobotEvtDelegator ,NoiseCheckThread.OnNoi
 	
 	@Override
 	public void installHandler(IRobotEvtHandler handler) {
-		// TODO Auto-generated method stub
 		
 		this.handler=handler;
 
@@ -32,32 +36,34 @@ public class NoiseDetector implements IRobotEvtDelegator ,NoiseCheckThread.OnNoi
 	}
 
 	@Override
-	synchronized public void  start(){
+	public void  start(){
+		lock.lock(); //not permitted using noise detector until stop previous one 
 		noiseCheckThread=new NoiseCheckThread(null);
 		noiseCheckThread.start();
 		noiseCheckThread.setOnNoiseListener(this);
 	}
 	
 	@Override
-	synchronized public void stop(){
+	public void stop(){
+		
 		if(noiseCheckThread!=null) noiseCheckThread.stopRunning();
 		try {
 			Thread.sleep(100);
 		} catch(Exception e) {}
 		
 		noiseCheckThread=null;
+		lock.unlock(); //now can use noise detector.
 	}
 	
 	@Override
 	public void uninstallHandler() {
-		// TODO Auto-generated method stub
 
 		stop();
 		handler=null;
 		
 	}
 	
-	synchronized public void onNoiseEvent(int vol, int dB) {
+	public void onNoiseEvent(int vol, int dB) {
 		
 		Log.d(TAG,"vol: "+vol+", dB: "+dB);
 		

@@ -213,13 +213,6 @@ public class RobotMotion {
 	 */
 	private void goForward(int speed, boolean speakOn, boolean faceOn) {
 		if (curWheelState != MOVE_FOWARD) {
-			if (speakOn) {
-				// speakMsg("앞으로!");
-//				playBGM(R.raw.bgm12);
-			}
-			if (faceOn) {
-				//faceOn(KibotVar.EMO_MODE_FUN);
-			}
 			curWheelState = MOVE_FOWARD;
 		}
 
@@ -228,9 +221,11 @@ public class RobotMotion {
 
 		if (D)
 			Log.i(TAG, "goFront");
+	
 		
 		_robotManager.stopWheel();
 		head(HEAD_FRONT);
+		
 		_robotManager.moveWheel(s_spds[speed - 1], 0.0f);
 	}
 
@@ -252,6 +247,7 @@ public class RobotMotion {
 		public final int lengthToTime = 20000;
 	 */
 	public void goForward(int speed, int length) {
+		_robotManager.setEmrEnable(true);
 		goForward(speed);
 		long pastMillTime = System.currentTimeMillis();
 		int time = length * lengthToTime / (speed * 30 + 30);
@@ -260,6 +256,7 @@ public class RobotMotion {
 		while ((System.currentTimeMillis() - pastMillTime) < time) {
 
 		}
+		_robotManager.setEmrEnable(false);
 		stopWheel();
 	}
 
@@ -296,13 +293,6 @@ public class RobotMotion {
 		
 	private void goBack(int speed, boolean speakOn, boolean faceOn) {
 		if (curWheelState != MOVE_BACK) {
-			if (speakOn) {
-				// speakMsg("뒤로!");
-//				playBGM(R.raw.bgm14);
-			}
-			if (faceOn) {
-//				faceOn(KibotVar.EMO_MODE_FUN);
-			}
 			curWheelState = MOVE_BACK;
 		}
 
@@ -312,6 +302,7 @@ public class RobotMotion {
 			return;
 		_robotManager.stopWheel();
 		head(HEAD_FRONT);
+		
 		_robotManager.moveWheel(-s_spds[speed - 1], 0.0f);
 	}
 
@@ -363,6 +354,7 @@ public class RobotMotion {
 	}
 	
 	public void goBack(int speed, int length) {
+		_robotManager.setEmrEnable(true);
 		goBack(speed);
 		long pastMillTime = System.currentTimeMillis();
 		int time = length * lengthToTime / (speed * 30 + 30);
@@ -371,6 +363,7 @@ public class RobotMotion {
 		while ((System.currentTimeMillis() - pastMillTime) < time) {
 	
 		}
+		_robotManager.setEmrEnable(false);
 		stopWheel();
 	}
 	
@@ -478,15 +471,6 @@ public class RobotMotion {
 	 */
 	public void stopWheel(boolean speakOn, boolean faceOn) {
 			if (curWheelState != STOPPED) {
-				if (speakOn) {
-					// speakMsg("스탑!");
-//					playBGM(R.raw.bgm13);
-				}
-				/*
-				if (faceOn) {
-					faceOn();
-				}
-				*/
 				curWheelState = STOPPED;
 			}
 		if (D)
@@ -494,7 +478,6 @@ public class RobotMotion {
 		if (_robotManager == null)
 			return;
 
-	//	head(HEAD_FRONT);
 		_robotManager.moveWheel(0.0f, 0.0f);
 	}
 

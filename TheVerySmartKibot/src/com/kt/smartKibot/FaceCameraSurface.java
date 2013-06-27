@@ -134,9 +134,11 @@ public class FaceCameraSurface extends SurfaceView implements
 	if (!stopSample) {
 	    synchronized (this) {
 		this.data = reducedData(data);
-		this.notify();
+	//	this.notify();
 	    }
-	    new Thread(this).start();
+	    Thread thread=new Thread(this);
+	    thread.setName("FaceCameraSurface");
+	    thread.start();
 	}
 	camera.addCallbackBuffer(buffer);
     }
@@ -146,12 +148,12 @@ public class FaceCameraSurface extends SurfaceView implements
     public void run() {
 	Bitmap bitmap = null;
 	synchronized (this) {
-	    try {
-		this.wait();
+	//    try {
+	//	this.wait();
 		bitmap = processFrame(data);
-	    } catch (InterruptedException e) {
-		Log.e(TAG, "Interrupted: " + e.getMessage());
-	    }
+	//    } catch (InterruptedException e) {
+	//	Log.e(TAG, "Interrupted: " + e.getMessage());
+	//    }
 	}
 	if (bitmap != null) {
 	    RobotActivity.displaySample(bitmap);

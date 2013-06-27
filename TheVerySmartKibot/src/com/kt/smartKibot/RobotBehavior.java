@@ -18,22 +18,19 @@ public abstract class RobotBehavior implements IRobotEvtHandler{
 	public static final int MAX_HISTORY_STATE=10;
 	protected Context ctx=null;
 	
+	
+	abstract public void handle(Context ctx,RobotEvent evt);
+	abstract public void onStop(Context ctx);
+	abstract protected void onStateActionEnd(IRobotState state);
+	
 	public void onStart(Context ctx){
 		this.ctx=ctx;
 		
 	}
 	
-	
-	
-	abstract public void handle(Context ctx,RobotEvent evt);
-	abstract public void onStop(Context ctx);
-	
 	public Context getContext(){
 		return ctx;
 	}
-	
-	abstract protected void onStateActionEnd(IRobotState state);
-	
 	protected void changeState(IRobotState state){
 		StatePresenter presenter= new StatePresenter(state,this);
 		
@@ -100,7 +97,7 @@ class StatePresenter extends Thread{
 	
 	IRobotState item;
 	RobotBehavior behavior;
-//	static final Lock lock= new ReentrantLock(); 
+	static final Lock lock= new ReentrantLock(); 
 	 
 	StatePresenter(IRobotState item,RobotBehavior behavior){
 		setName("Robot StatePresenter thread");
@@ -110,7 +107,7 @@ class StatePresenter extends Thread{
 	
 	public void run(){
 		
-//		lock.lock();  //make it class scope mutex.
+	//	lock.lock();  //make it class scope mutex.
 		
 		try{
 		Looper.prepare();

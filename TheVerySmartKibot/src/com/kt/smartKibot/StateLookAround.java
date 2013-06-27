@@ -1,6 +1,7 @@
 package com.kt.smartKibot;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 
 import android.content.Context;
 
@@ -13,17 +14,15 @@ public class StateLookAround implements IRobotState {
 
 	@Override
 	public void onStart(Context ctx) {
-		// TODO Auto-generated method stub
 		if (_DEBUG) {
-
-			RobotFace.getInstance(ctx).change(RobotFace.MODE_ATTENTION, TAG);
-		} else {
-			RobotFace.getInstance(ctx).change(RobotFace.MODE_ATTENTION);
-		}
-
-		NoiseDetector.getInstance().start();
-		FaceDetector.getInstance().start();
-		isEnd = false;
+				RobotFace.getInstance(ctx).change(RobotFace.MODE_ATTENTION, TAG);
+			} else {
+				RobotFace.getInstance(ctx).change(RobotFace.MODE_ATTENTION);
+			}
+	
+			//NoiseDetector.getInstance().start();
+			FaceDetector.getInstance().start();
+			isEnd = false;
 	}
 
 	StateLookAround(RobotEvent cause, ArrayList<RobotLog> log) {
@@ -71,11 +70,14 @@ public class StateLookAround implements IRobotState {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		
+		
+		
 	}
 
 	@Override
 	public void cleanUp(Context ctx) {
-		NoiseDetector.getInstance().stop();
+	//	NoiseDetector.getInstance().stop();
 		FaceDetector.getInstance().stop();
 		RobotMotion.getInstance(ctx).stopAll();
 		RobotMotion.getInstance(ctx).setLogoLEDDimming(0);

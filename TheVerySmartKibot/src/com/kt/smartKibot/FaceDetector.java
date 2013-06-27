@@ -1,5 +1,8 @@
 package com.kt.smartKibot;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 import android.util.Log;
 
 public class FaceDetector implements IRobotEvtDelegator,
@@ -11,8 +14,10 @@ public class FaceDetector implements IRobotEvtDelegator,
     private FaceCameraSurface cameraSurface;
     private IRobotEvtHandler handler;
 
+	static final Lock lock= new ReentrantLock(); 
+	
     @Override
-    public void onFaceDetect() {
+    synchronized public void onFaceDetect() {
 	Log.i(TAG, "onFaceDetected");
 	if (cameraSurface != null) {
 	    cameraSurface.stopSearch();
@@ -36,8 +41,9 @@ public class FaceDetector implements IRobotEvtDelegator,
     }
 
     @Override
-    public void start() {
+    synchronized public void start() {
 	Log.i(TAG, "start");
+	//lock.lock();
 	cameraSurface = RobotActivity.addCameraSurface();
 	if (cameraSurface != null) {
 	    cameraSurface.setOnFaceDetectListener(this);
@@ -47,12 +53,13 @@ public class FaceDetector implements IRobotEvtDelegator,
     }
 
     @Override
-    public void stop() {
+    synchronized public void stop() {
 	Log.i(TAG, "stop");
 	if (cameraSurface != null) {
 	    cameraSurface.stopSample();
 	    RobotActivity.removeCameraSurface();
 	    cameraSurface = null;
+	 //   lock.unlock();
 	}
     }
 

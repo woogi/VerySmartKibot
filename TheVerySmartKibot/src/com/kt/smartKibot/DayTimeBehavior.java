@@ -1,6 +1,7 @@
 package com.kt.smartKibot;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Iterator;
 import java.util.ListIterator;
 
@@ -14,7 +15,10 @@ public class DayTimeBehavior extends RobotBehavior {
 	private static final String TAG = "DayTimeBehavior";
 	private volatile boolean isEnd = false;
 	private volatile int targetHourlyBrief=-1;
-	private volatile boolean isAlreadyDailyBrief=false;
+	private volatile boolean isAlreadyDailyBrief=true;
+	private volatile boolean isAlreadyGoodMorning=true;
+	private volatile boolean isAlreadyGoodLunch=true;
+	private volatile boolean isAlreadyGoodAfternoon=true;
 
 	public DayTimeBehavior(ArrayList<RobotLog> logHistory) {
 		super(logHistory);
@@ -30,8 +34,7 @@ public class DayTimeBehavior extends RobotBehavior {
 		super.onStart(ctx);
 		isEnd=false;
 		targetHourlyBrief=-1;
-		isAlreadyDailyBrief=false;
-		RobotActivity.setModeIndicatorColor(Color.YELLOW);
+		RobotActivity.setModeIndicatorColor(Color.YELLOW,"주간");
 		RobotTimer.getInstance().start();
 		changeState(new StateGreeting());
 	}
@@ -56,35 +59,45 @@ public class DayTimeBehavior extends RobotBehavior {
 		switch (evt.getType()) 
 		{
 		
-		case RobotEvent.EVT_TOUCH_SCREEN: 
-		{
-			changeState(new StateSleeping());
-		}
-		break;
-		
+	
+		//todo
 		case RobotEvent.EVT_TIMER_HOURLY:
 		{
 			targetHourlyBrief=evt.getParam1();
+			
+			//reset
+			if(targetHourlyBrief==8)
+				isAlreadyGoodMorning=false;
+			
+			if(targetHourlyBrief==9)
+				isAlreadyDailyBrief=false;
+			
+			if(targetHourlyBrief==11)
+				isAlreadyGoodLunch=false;
+			
+			if(targetHourlyBrief==13)
+				isAlreadyGoodAfternoon=false;
 			
 		}
 		break;
 			
 
+		//todo 
 		case RobotEvent.EVT_TIMER:
+		{
 			
 				if (evt.getParam1() == 2 ) {
 					if(targetHourlyBrief!=-1)
 					{
 						if(targetHourlyBrief==18)
 						{
-							targetHourlyBrief=-1;
 							changeState(new StateBye() );
-							isAlreadyDailyBrief=true;
+							targetHourlyBrief=-1;
 							return;
 							
 						}
 						
-						if((targetHourlyBrief==8) || targetHourlyBrief==9 && isAlreadyDailyBrief==false)/* 8시 혹은 9시에 한번만*/
+						if(targetHourlyBrief==9 && !isAlreadyDailyBrief)/* 9시에 한번만*/
 						{
 							changeState(new StateScheduleBriefing(StateScheduleBriefing.DAILY));
 							targetHourlyBrief=-1;
@@ -94,82 +107,134 @@ public class DayTimeBehavior extends RobotBehavior {
 						else{
 							changeState(new StateScheduleBriefing(StateScheduleBriefing.HOURLY,targetHourlyBrief+1));
 							targetHourlyBrief=-1;
-							isAlreadyDailyBrief=false; //여기선 무조건 dailyBrief상태를 false로 바꿀수있다.(8시나 ,9시이나 이미 dailyBrief한경우나 8,9시 이외의 시간)
 							return;
 						}
 					}
 				}
 				
-				
-			if (StateGreeting.class.isInstance(getCurrentState())) {
-				if (evt.getParam1() == 2 ) {
-						changeState(new StateLookAround(evt,history_log));
-					return;
-				}
-			}
-			
-			//need to change it (change to the sleeping state after just finishing this state) 
-			if(StateScheduleBriefing.class.isInstance(getCurrentState())){
-				if (evt.getParam1() >= 4 && RobotSpeech.getInstance(ctx).isSpeaking()==false) {
-					changeState(new StateSleeping());
-					return;
-				}
-			}
-			
-			if(StateBye.class.isInstance(getCurrentState())){
-				if (evt.getParam1() >= 4 && RobotSpeech.getInstance(ctx).isSpeaking()==false) {
-					changeState(new StateSleeping());
-					return;
-				}
-			}
-
-			if (StateWandering.class.isInstance(getCurrentState())) {
-				if (evt.getParam1() == 4) {
-					changeState(new StateSleeping());
-					return;
-				}
-			}
-			
-			if (StateAttraction.class.isInstance(getCurrentState())) {
-				if (evt.getParam1() == 3) {
-					changeState(new StateSleeping());
-					return;
-				}
-			}
-
-			if (StateEvasion.class.isInstance(getCurrentState())) {
-				if (evt.getParam1() == 2) {
-					changeState(new StateSleeping());
-					return;
-				}
-			}
-
-			if (StateLookAround.class.isInstance(getCurrentState())) {
-				if (evt.getParam1() == 4) {
-					if(StateGreeting.class.isInstance(getLastState())) {
-						changeState(new StateWandering(evt, history_log));
-					}
-					else {
-						changeState(new StateSleeping());
-					}
-					return;
-				}
-			}
-
-			if (StateTouchResponse.class.isInstance(getCurrentState())) {
-				if (evt.getParam1() == 4) {
-					changeState(new StateSleeping());
-					return;
-				}
-			}
-
-			if (StateSleeping.class.isInstance(getCurrentState())) {
-				if (evt.getParam1() == 30*60/5/*30min*/) {
+				//todo	
+				if (StateGreeting.class.isInstance(getCurrentState())) {
+					if (evt.getParam1() == 2 ) {
+						StateGreeting state=(StateGreeting)getCurrentState();
 					
+						if(state.getCause()==StateGreeting.CAUSE_HELLO){
+							changeState(new StateLookAround(evt,history_log));
+						}else{
+							changeState(new StateSleeping());
+						}
+						return;
+					}
 				}
-				return;
-			}
+			
+				//need to change it (change to the sleeping state after just finishing this state) 
+				if(StateScheduleBriefing.class.isInstance(getCurrentState())){
+					if (evt.getParam1() >= 4 && RobotSpeech.getInstance(ctx).isSpeaking()==false) {
+						changeState(new StateSleeping());
+						return;
+					}
+				}
+				
+				if(StateBye.class.isInstance(getCurrentState())){
+					if (evt.getParam1() >= 4 && RobotSpeech.getInstance(ctx).isSpeaking()==false) {
+						changeState(new StateSleeping());
+						return;
+					}
+				}
+	
+				if (StateWandering.class.isInstance(getCurrentState())) {
+					if (evt.getParam1() == 4) {
+						changeState(new StateSleeping());
+						return;
+					}
+				}
+				
+				if (StateAttraction.class.isInstance(getCurrentState())) {
+					if (evt.getParam1() == 3) {
+						changeState(new StateSleeping());
+						return;
+					}
+				}
+	
+				if (StateEvasion.class.isInstance(getCurrentState())) {
+					if (evt.getParam1() == 2) {
+						changeState(new StateSleeping());
+						return;
+					}
+				}
+	
+				//todo
+				if (StateLookAround.class.isInstance(getCurrentState())) {
+					if (evt.getParam1() == 4) {
+						//최초 시작시 한번
+						if(StateGreeting.class.isInstance(getLastState())) {
+							
+							StateGreeting state=(StateGreeting)getCurrentState();
+							
+							if(state.getCause()==StateGreeting.CAUSE_HELLO){
+								changeState(new StateWandering(evt, history_log));
+							return;
+							}
+						}
+							
+						Calendar c = Calendar.getInstance();
+						int hour=c.get(Calendar.HOUR_OF_DAY);
+						int minute=c.get(Calendar.MINUTE);
+		
+						if((hour==8 || hour==9) && !isAlreadyGoodMorning)
+						{
+							changeState(new StateGreeting(StateGreeting.CAUSE_GOOD_MORNING));
+							isAlreadyGoodMorning=true;
+							return;
+							
+						}
+						
+						if(hour==11 && minute>20  && !isAlreadyGoodLunch)
+						{
+							changeState(new StateGreeting(StateGreeting.CAUSE_GOOD_LUNCH));
+							isAlreadyGoodLunch=true;
+							return;
+						}
+						
+						if(hour==13 && minute>20  && !isAlreadyGoodAfternoon)
+						{
+							changeState(new StateGreeting(StateGreeting.CAUSE_GOOD_AFTERNOON));
+							isAlreadyGoodAfternoon=true;
+							return;
+							
+						}
+						
+						changeState(new StateSleeping());
+						return;
+								
+					}
+					
+				}//:end of is state lookAround
 
+				if (StateTouchResponse.class.isInstance(getCurrentState())) {
+					if (evt.getParam1() == 4) {
+						changeState(new StateSleeping());
+						return;
+					}
+				}
+	
+				if (StateSleeping.class.isInstance(getCurrentState())) {
+					if (evt.getParam1() == 30*60/5/*30min*/) {
+						
+						int random=(int)(Math.random()*2l);
+						
+						if(random==0){
+							changeState(new StateLookAround(evt, history_log));
+						}
+						
+						if(random==1){
+							changeState(new StateWandering(evt, history_log));
+						}
+						
+					}
+					return;
+				}
+			
+		}//:end of case
 		break;
 
 		case RobotEvent.EVT_NOISE_DETECTION:
@@ -181,21 +246,21 @@ public class DayTimeBehavior extends RobotBehavior {
 				}
 
 				if (evt.getParam1() == NoiseDetector.PARAM_BIG_NOISE) {
-
+					
 					// check latest 3 StateSleeping state has received big noise
 					int cntBigNoise = 0;
-					int cntSleepingState = 1; // 현재 상황이 sleepingState이니 기본 cnt는 1
+					int cntSleepingState = 1; // 현재가 sleepingState이니 기본 cnt는 1
 					RobotLog prevLog = null;
-
+					
 					ListIterator<RobotLog> it = history_log
 							.listIterator(history_log.size());
-
+					
 					while (it.hasPrevious()) {
 						RobotLog log = it.previous();
-
+						
 						if (log.getEvent().getTimeStamp().toMillis(false) + 1000 * 60 * 10 < currentTime) 
 							break; //10분이내 내역만  
-
+						
 						if (StateSleeping.class.isInstance(log.getState())) {
 							if (prevLog != null
 									&& !StateSleeping.class.isInstance(prevLog.getState())) {
@@ -203,40 +268,32 @@ public class DayTimeBehavior extends RobotBehavior {
 								// 저장하기때문에 상태변했을때만 count
 								if (++cntSleepingState > 3)
 									break;
-
+								
 								Log.d(TAG, "count of sleeping state:"
 										+ cntSleepingState);
 							}
-
+							
 							if (log.getEvent().getType() == RobotEvent.EVT_NOISE_DETECTION
 									&& log.getEvent().getParam1() == NoiseDetector.PARAM_BIG_NOISE) {
 								++cntBigNoise;
 								Log.d(TAG, "count of big noise" + cntBigNoise);
 							}
-
+							
 						}
-
+						
 						prevLog = log;
 					}
-
+					
 					if (cntBigNoise >= 3) {
 						changeState(new StateEvasion(
 								StateEvasion.CAUSE_BIG_NOISE));
 					} else {
 						changeState(new StateWandering(evt, history_log));
 					}
-
+					
 					return;
 				}
 			}
-			
-			if (StateLookAround.class.isInstance(getCurrentState())) {
-				if (evt.getParam1() == NoiseDetector.PARAM_BIG_NOISE) {
-					changeState(new StateWandering(evt, history_log));
-				}
-				return;
-			}
-			
 			break;
 
 
@@ -244,11 +301,23 @@ public class DayTimeBehavior extends RobotBehavior {
 
 			int _cntTouch = 1;
 
-			RobotLog lastLog =null;
-			if(history_log.size()>1){
-				lastLog=history_log.get(history_log.size()-2);
-				Log.d(TAG,"last Log timeStamp:"+lastLog.getEvent().getTimeStamp().toMillis(false)+" current:"+currentTime);
-				if(lastLog.getEvent().getTimeStamp().toMillis(false) +1000*2 >currentTime) return; /* 2초 안에 같은 event */
+			{ //todo refactoring it..later
+				RobotEvent lastTouchEvt =null;
+					
+				ListIterator<RobotLog> it = history_log.listIterator(history_log.size()-1);//not from this event sent just before
+				while (it.hasPrevious()) {
+					RobotLog temp=it.previous();
+					if(temp.getEvent().getType()==RobotEvent.EVT_TOUCH_BODY)
+					{						lastTouchEvt=temp.getEvent();
+						break;
+					}
+				}
+				
+				if(lastTouchEvt!=null)
+				{
+					Log.d(TAG,"last Log timeStamp:"+lastTouchEvt.getTimeStamp().toMillis(false)+" current:"+currentTime);
+					if(lastTouchEvt.getTimeStamp().toMillis(false) +1000*1 >currentTime) return; /* 1초 안에 같은 event */
+				}
 			}
 			
 			ListIterator<RobotLog> it = history_log.listIterator(history_log.size());
@@ -315,6 +384,7 @@ public class DayTimeBehavior extends RobotBehavior {
 		Iterator<IRobotState> it = history_state.iterator();
 
 		while (it.hasNext()) {
+			
 			it.next().onChanged(ctx);
 		}
 

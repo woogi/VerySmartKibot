@@ -11,7 +11,11 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.speech.tts.TextToSpeech.OnUtteranceCompletedListener;
+import android.text.format.Time;
 import android.util.Log;
+import android.view.GestureDetector;
+import android.view.GestureDetector.OnGestureListener;
+import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.View;
@@ -39,8 +43,9 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 	private static FaceCameraSurface cameraSurface;
 	private static ImageView sampleView;
 	private static TextView logView;
-	private static View modeIndicator=null;
+	private static TextView modeIndicator=null;
 	private static volatile boolean isEnd=false;
+	GestureDetector gestureDetector=null;
 	
 	
 	
@@ -193,11 +198,36 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 		
 	}
 	
-	static void setModeIndicatorColor(int color){
+	static boolean isLogScreenShowing(){
+		if(isEnd) return false;
+		
+    	if(logView.getVisibility()==View.VISIBLE){
+    		return true;
+    	}
+    	else{
+    		return false;
+    	}
+		
+	}
+	
+	static void showDbgLogScreen(boolean show){
+		
+		if(isEnd) return;
+		
+		
+	    if(show) {
+	    	logView.setVisibility(View.VISIBLE);
+	    }else{
+	    	logView.setVisibility(View.INVISIBLE);
+	    }
+	    
+	}
+	static void setModeIndicatorColor(int color,String msg){
 		
 		if(isEnd) return;
 		
     	modeIndicator.setBackgroundColor(color);
+    	modeIndicator.setText(msg);
 	}
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -215,10 +245,12 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
                 // faceSurface = (FaceCameraSurface) findViewById(R.id.camera_surface);
                 // faceSurface.initializeAssets(getFilesDir(), getAssets());
         	
-        	logView = (TextView) findViewById(R.id.log_view);
-        	((ScrollView) logView.getParent()).setVerticalScrollBarEnabled(false);
-        	
-    	modeIndicator=(View)findViewById(R.id.robot_mode);
+    	logView = (TextView) findViewById(R.id.log_view);
+    	((ScrollView) logView.getParent()).setVerticalScrollBarEnabled(false);
+     
+    	//debug screen is invisible.
+		RobotActivity.showDbgLogScreen(false);
+		    	modeIndicator=(TextView)findViewById(R.id.robot_mode);
     	
     	modeIndicator.setBackgroundColor(Color.YELLOW);
 		
@@ -311,22 +343,141 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 
 			LinearLayout layout = (LinearLayout) findViewById(R.id.layout);
 			layout.addView(mSurface);
+			
+			class MyOnGestureListener extends SimpleOnGestureListener implements
+	        OnGestureListener {
+				
+				 private static final int SWIPE_MIN_DISTANCE = 100;
+				 private static final int SWIPE_MAX_OFF_PATH = 350;
+				 private static final int SWIPE_THRESHOLD_VELOCITY = 200;
+				    
+				@Override
+				public boolean onDown(MotionEvent e) {
+					
+					return true;
+				}
+				
+				@Override
+				public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX,
+						float velocityY) {
+					
+					
+					try {
+			            
+			            // right to left swipe
+			            if (e1.getX() - e2.getX() > SWIPE_MIN_DISTANCE
+			                    && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
+			            	
+			            	if (Math.abs(e1.getY() - e2.getY()) > SWIPE_MAX_OFF_PATH)
+			            		return false;
+			            	
+								touchEvtHandler.handle(getApplicationContext(), 
+								new RobotEvent(RobotEvent.EVT_SWIPE_SCREEN,0,0,null));
+								writeLog("event swipe screen right to left");
+			                
+			            }
+			            // left to right swipe
+			            else if (e2.getX() - e1.getX() > SWIPE_MIN_DISTANCE
+			                    && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
+			            	
+			            	if (Math.abs(e1.getY() - e2.getY()) > SWIPE_MAX_OFF_PATH)
+			            		return false;
+			            
+								touchEvtHandler.handle(getApplicationContext(), 
+								new RobotEvent(RobotEvent.EVT_SWIPE_SCREEN,1,0,null));
+								writeLog("event swipe screen left to right");
+			            
+			            }
+			            // down to up swipe
+			            else if (e1.getY() - e2.getY() > SWIPE_MIN_DISTANCE
+			                    && Math.abs(velocityY) > SWIPE_THRESHOLD_VELOCITY) {
+			            	
+			            	if (Math.abs(e1.getX() - e2.getX()) > SWIPE_MAX_OFF_PATH)
+			            		return false;
+			            	
+								touchEvtHandler.handle(getApplicationContext(), 
+								new RobotEvent(RobotEvent.EVT_SWIPE_SCREEN,2,0,null));
+								writeLog("event swipe screen down to up");
+			            
+			            }
+			            // up to down swipe
+			            else if (e2.getY() - e1.getY() > SWIPE_MIN_DISTANCE
+			                    && Math.abs(velocityY) > SWIPE_THRESHOLD_VELOCITY) {
+			            	
+			            	if (Math.abs(e1.getX() - e2.getX()) > SWIPE_MAX_OFF_PATH)
+			            		return false;
+			            	
+								touchEvtHandler.handle(getApplicationContext(), 
+								new RobotEvent(RobotEvent.EVT_SWIPE_SCREEN,3,0,null));
+								writeLog("event swipe screen up to down");
+			             
+			            }
+			        } 
+					catch (Exception e){
+			            
+			        }
+					
+					return true;
+				}
+				
+				@Override
+				public void onLongPress(MotionEvent e) {
+					touchEvtHandler.handle(getApplicationContext(), 
+					new RobotEvent(RobotEvent.EVT_LONG_PRESS_SCREEN));
+					writeLog("event long press screen");
+					
+				}
+				
+				@Override
+				public boolean onScroll(MotionEvent e1, MotionEvent e2,
+						float distanceX, float distanceY) {
+					
+					return true;
+				}
+				
+				@Override
+				public void onShowPress(MotionEvent e) {
+			
+					touchEvtHandler.handle(getApplicationContext(), 
+					new RobotEvent(RobotEvent.EVT_TOUCH_SCREEN));
+					writeLog("event touch screen");
+					
+			
+				}
+				
+				@Override
+				public boolean onSingleTapUp(MotionEvent e) {
+					return true;
+				}
+			}
 
+			gestureDetector = new GestureDetector(this, new MyOnGestureListener());	
+			gestureDetector.setIsLongpressEnabled(true);
+			
+	
 			mSurface.setOnTouchListener(new OnTouchListener() {
+				Time _t = new Time();
 				@Override
 				public boolean onTouch(View v, MotionEvent event) {
+					
+					
+					gestureDetector.onTouchEvent(event);						
+					
+					Log.d(TAG, "touch face");
+						
 					if (event.getAction() == MotionEvent.ACTION_DOWN) 
 					{
-						Log.d(TAG, "touch face");
-						
-						touchEvtHandler.handle(getApplicationContext(), 
-						new RobotEvent(RobotEvent.EVT_TOUCH_SCREEN));
-												writeLog("event touch screen");
 					}
+					
+					if(event.getAction()==MotionEvent.ACTION_UP)
+					{
+					}
+					
 					return true;
 				}
 			});
-
+			
+			
 			mSurface.Start();
 			
 			if (DEBUG)
