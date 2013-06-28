@@ -274,7 +274,7 @@ class Schedule{
 					managedCursor.moveToNext() ;
 				}
 				
-				msg="소장님, 일정을 알려 드릴께요 ";
+				msg="소장님. 일정을 알려 드릴께요 ";
 				
 				msg+=thisMonth+"월"+ thisDate+"일 오늘 ";
 				
@@ -314,7 +314,7 @@ class Schedule{
 			}
 			else{
 				//schedule is empty
-				msg="소장님,일정을 알려 드릴께요 ";
+				msg="소장님. 일정을 알려 드릴께요 ";
 				msg+=thisMonth+"월"+ thisDate+"일 오늘 ";
 				msg+=""+fromHour +"시 부터 "+ toHour+"시 까지는 ";
 				msg+="일정이 없습니다.";
@@ -437,7 +437,7 @@ class Schedule{
 					managedCursor.moveToNext() ;
 				}
 				
-				msg="소장님, 일정을 알려 드릴께요 ";
+				msg="소장님. 일정을 알려 드릴께요 ";
 				
 				msg+=thisMonth+"월"+ thisDate+"일 오늘 ";
 				msg+="총 "+managedCursor.getCount()+" 건의 일정이 있습니다.";
@@ -455,7 +455,7 @@ class Schedule{
 			}
 			else{
 				//schedule is empty
-				msg="소장님, 일정을 알려 드릴께요 ";
+				msg="소장님. 일정을 알려 드릴께요 ";
 				msg+=thisMonth+"월"+ thisDate+"일 오늘 ";
 				msg+="일정이 없습니다.";
 			}

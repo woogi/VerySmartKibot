@@ -53,7 +53,7 @@ public class StateGreeting implements IRobotState {
 				}
 				else if(cnt==10) {
 					if(cause==CAUSE_HELLO){
-						RobotSpeech.getInstance(ctx).speak("소장님,방가워요");
+						RobotSpeech.getInstance(ctx).speak("소장님. 방가워요");
 					}
 					
 					if(cause==CAUSE_GOOD_MORNING){

@@ -64,6 +64,8 @@ public class TestBehavior extends RobotBehavior {
 			
 			if(StateScheduleBriefing.class.isInstance(getCurrentState())){
 				
+				if (evt.getParam1() >= 4 && RobotSpeech.getInstance(ctx).isSpeaking()==false) {
+					
 				if(targetHour!=0)
 				{
 					if(targetHour==19){
@@ -81,6 +83,8 @@ public class TestBehavior extends RobotBehavior {
 						changeState(new StateBye());
 						return;
 					}
+				}
+				
 				}
 			}
 			

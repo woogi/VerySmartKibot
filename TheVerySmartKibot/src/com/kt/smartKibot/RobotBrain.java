@@ -31,6 +31,8 @@ public class RobotBrain implements IRobotEvtHandler{
 	
 	
 	private static final boolean _DEBUG=true;
+	private static int cnt_swipeForDbgWindow=0;
+	private static int cnt_swipeForTestBehavior=0;
 	
 	private void changeBehavior(RobotBehavior behavior){
 		RobotBehavior oldBehavior=getCurrentBehavior();
@@ -173,20 +175,26 @@ public class RobotBrain implements IRobotEvtHandler{
 			switch(evt.getParam1())
 			{
 				case 0://right to left
+					if(cnt_swipeForTestBehavior++>4){
 					changeBehavior(testBehavior);// no need to send events to behavior.
+					}
 					return;
 					//break;
 					
 				case 1:// left to right
+					cnt_swipeForTestBehavior=0;
 					changeBehavior(dayTimeBehavior);
 					return;
 					//break;
 					
 				case 2: //down to up
+					if(cnt_swipeForDbgWindow++ >4){
 					RobotActivity.showDbgLogScreen(true);
+					}
 					break;
 					
 				case 3: //up to down
+					cnt_swipeForDbgWindow=0;
 					RobotActivity.showDbgLogScreen(false);
 					break;
 			}
