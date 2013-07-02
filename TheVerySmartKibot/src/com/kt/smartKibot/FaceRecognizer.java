@@ -16,62 +16,68 @@ import android.util.Log;
 
 import com.kt.facerecognition.framework.FaceRecognition;
 
-public class FaceRecognizer implements IRobotEvtDelegator, CameraSurface.OnFaceDetectListener {
+public class FaceRecognizer implements IRobotEvtDelegator, CamSurface.OnFaceDetectListener {
 
 	private static final String TAG = "FaceRecognizer";
-	private static final String N = "nicolas";
 
-	private static CameraSurface cameraSurface;
+	private static CamSurface cameraSurface;
 	private static FaceRecognizer instance;
 
-	// private IRobotEvtHandler handler;
-	private CameraTagDatabase database;
+	private IRobotEvtHandler handler;
+	private CamDatabase database;
+	private int direction;
 	private String loggedName;
 	private Rect reference;
 	private int tolerance;
 
 	@Override
 	public void onFaceDetected(Bitmap bitmap, int detectedFaceNumber, Rect[] detectedFacePostion) {
-		Log.i(TAG, "onFaceDetected");
-		// if (cameraSurface != null) {
-		// cameraSurface.stopSearch();
-		// }
-		// RobotEvent evt = new RobotEvent(RobotEvent.EVT_FACE_RECOGNITION);
-		// handler.handle(null, evt);
 		handleDetectedFaces(bitmap, detectedFaceNumber, detectedFacePostion);
+		RobotEvent evt = new RobotEvent(RobotEvent.EVT_FACE_RECOGNITION);
+		handler.handle(null, evt);
+	}
+
+	@Override
+	public void onFaceLost() {
+		direction = CamConf.LOST;
+		RobotEvent evt = new RobotEvent(RobotEvent.EVT_FACE_RECOGNITION);
+		handler.handle(null, evt);
 	}
 
 	@Override
 	public void installHandler(IRobotEvtHandler handler) {
 		Log.i(TAG, "installHandler");
-		// this.handler = handler;
+		this.handler = handler;
 	}
 
 	@Override
 	public void uninstallHandler() {
 		Log.i(TAG, "uninstallHandler");
 		stop();
-		// handler = null;
+		handler = null;
 	}
 
 	@Override
 	public void start() {
 		Log.i(TAG, "start");
 		Context ctx = RobotActivity.getContext();
-		cameraSurface = CameraSurface.getInstance(ctx);
+		cameraSurface = CamSurface.getInstance(ctx);
 		if (cameraSurface != null) {
 			cameraSurface.setOnFaceDetectListener(this);
 			cameraSurface.start();
 		}
+		/* init direction */
+		direction = CamConf.LOST;
 		/* init database */
-		database = new CameraTagDatabase(ctx);
+		database = new CamDatabase(ctx);
 		/* init logged name */
 		loggedName = null;
 		/* init tolerance */
-		int length = (Config.FRAME_HEIGHT / 2) / 2;
-		tolerance = length / 3;
+		int length = (CamConf.FRAME_HEIGHT / 2) / 2;
+		tolerance = length / 10;
+		// tolerance = length / 3;
 		/* init ground zone */
-		int l = (Config.FRAME_WIDTH / 2) / 2 - length / 2;
+		int l = (CamConf.FRAME_WIDTH / 2) / 2 - length / 2;
 		int t = length / 2;
 		int r = l + length;
 		int b = t + length;
@@ -94,6 +100,10 @@ public class FaceRecognizer implements IRobotEvtDelegator, CameraSurface.OnFaceD
 		return instance;
 	}
 
+	public int getDirection() {
+		return direction;
+	}
+
 	private void handleDetectedFaces(Bitmap bitmap, int detectedFaceNumber, Rect[] detectedFacePostion) {
 		Vector<DetectedFaceProperties> faces = new Vector<DetectedFaceProperties>();
 		DetectedFaceProperties bestFace = new DetectedFaceProperties();
@@ -104,15 +114,15 @@ public class FaceRecognizer implements IRobotEvtDelegator, CameraSurface.OnFaceD
 			face.rect = flip(face.rect);
 			face.imageUri = saveCroppedFace(face.rect, bitmap);
 			if (face.imageUri != null) {
-				/* Returns cursor to browse db if known, null if not */
+				/* Returns cursor to browse DB if known, null if not */
 				Cursor cursorClass = isKnown(face.imageUri);
 				if (cursorClass != null) {
 					/*
 					 * if face is known, cursor is not null. then browse in
 					 * database to get tag name associated
 					 */
-					face.tagName = cursorClass.getString(cursorClass.getColumnIndex(CameraTagDatabase.KEY_TAG_NAME));
-					face.friendLevel = Integer.parseInt(cursorClass.getString(cursorClass.getColumnIndex(CameraTagDatabase.KEY_FRIEND_LEVEL)));
+					face.tagName = cursorClass.getString(cursorClass.getColumnIndex(CamDatabase.KEY_TAG_NAME));
+					face.friendLevel = Integer.parseInt(cursorClass.getString(cursorClass.getColumnIndex(CamDatabase.KEY_FRIEND_LEVEL)));
 					cursorClass.close();
 				}
 			}
@@ -121,27 +131,30 @@ public class FaceRecognizer implements IRobotEvtDelegator, CameraSurface.OnFaceD
 		}
 		/* if no one is logged in, register new log name in database */
 		if (loggedName == null) {
-			if (bestFace.tagName == null) { //TODO
-				String num = CameraUtils.getNextFileNum(Config.SAVE_FACES_PATH);
+			if (bestFace.tagName == null) {
+				String num = CamUtils.getNextFileNum(CamConf.SAVE_FACES_PATH);
 				loggedName = "name_" + num;
-				String imagePath = Config.SAVE_FACES_PATH + num;
-				if (CameraUtils.registerName(database, loggedName) && CameraUtils.registerImage(bestFace.imageUri, imagePath)) {
-					CameraUtils.addItemToDatabase(database, loggedName, imagePath, 0);
-					Log.i(N, "<follow> new name in db : " + loggedName);
+				String imagePath = CamConf.SAVE_FACES_PATH + num + ".jpg";
+				if (CamUtils.registerName(database, loggedName) && CamUtils.registerImage(bestFace.imageUri, imagePath)) {
+					CamUtils.addItemToDatabase(database, loggedName, imagePath, 0);
+					Log.i(TAG, "<follow> add name " + loggedName + " in DB " + " (friend #" + bestFace.friendLevel + ")");
 				}
 			} else {
 				loggedName = bestFace.tagName;
-				Log.i(N, "<follow> name already in db : " + loggedName);
+				CamUtils.logInAs(database, loggedName);
+				Log.i(TAG, "<follow> " + loggedName + " already in DB " + " (friend #" + bestFace.friendLevel + ")");
 			}
 		}
 		if (bestFace != null) {
 			letsMove(bestFace.rect);
+		} else {
+			direction = CamConf.LOST;
 		}
 	}
 
 	private Rect flip(Rect rect) {
 		int rectWidth = rect.width();
-		rect.left = Config.FRAME_WIDTH / 2 - rect.right;
+		rect.left = CamConf.FRAME_WIDTH / 2 - rect.right;
 		rect.right = rect.left + rectWidth;
 		return rect;
 	}
@@ -152,15 +165,15 @@ public class FaceRecognizer implements IRobotEvtDelegator, CameraSurface.OnFaceD
 		int w = faceFrame.width();
 		int h = faceFrame.height();
 		Bitmap croppedBitmap = Bitmap.createBitmap(bitmap, x, y, w, h);
-		Bitmap resizedBitmap = Bitmap.createScaledBitmap(croppedBitmap, Config.FACE_IMAGE_SIZE_W, Config.FACE_IMAGE_SIZE_H, true);
-		String croppedFaceFilename = Config.DATA_PATH + "face.jpg";
+		Bitmap resizedBitmap = Bitmap.createScaledBitmap(croppedBitmap, CamConf.FACE_IMAGE_SIZE_W, CamConf.FACE_IMAGE_SIZE_H, true);
+		String croppedFaceFilename = CamConf.DATA_PATH + "face.jpg";
 		Uri croppedFaceUri = saveBitmapToFileCache(resizedBitmap, croppedFaceFilename);
 		return croppedFaceUri;
 	}
 
 	private Cursor isKnown(Uri croppedFaceUri) {
 		String capturedFaceFilePath = croppedFaceUri.getPath();
-		FaceRecognition facerecognition = new FaceRecognition(Config.SAVE_FACES_TRAINING_RESULT_PATH);
+		FaceRecognition facerecognition = new FaceRecognition(CamConf.SAVE_FACES_TRAINING_RESULT_PATH);
 		int predictedClass = facerecognition.getPredictClass(capturedFaceFilePath);
 		facerecognition.close();
 		Cursor cursorClass = null;
@@ -204,15 +217,15 @@ public class FaceRecognizer implements IRobotEvtDelegator, CameraSurface.OnFaceD
 		int deltaX = (current.left - reference.left);
 		int deltaY = (current.width() - reference.width());
 		if (Math.abs(deltaX) > 2 * Math.abs(deltaY) && deltaX > 2 * tolerance) {
-			Log.i(N, "LEFT"); // TODO LEFT
+			direction = CamConf.LEFT;
 		} else if (Math.abs(deltaX) > 2 * Math.abs(deltaY) && deltaX < -2 * tolerance) {
-			Log.i(N, "RIGHT"); // TODO RIGHT
+			direction = CamConf.RIGHT;
 		} else if (2 * Math.abs(deltaY) > Math.abs(deltaX) && deltaY > tolerance) {
-			Log.i(N, "BACK"); // TODO BACK
+			direction = CamConf.BACK;
 		} else if (2 * Math.abs(deltaY) > Math.abs(deltaX) && deltaY < -tolerance) {
-			Log.i(N, "FWD"); // TODO FWD
+			direction = CamConf.FWD;
 		} else {
-			Log.i(N, "STOP"); // TODO STOP
+			direction = CamConf.STOP;
 		}
 	}
 

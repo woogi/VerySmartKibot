@@ -410,7 +410,7 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 		switch (msg.what) {
 		case -1: // remove camera surface and sample view
 		    if (msg.obj != null) {
-			mainLayout.removeView((CameraSurface) msg.obj);
+			mainLayout.removeView((CamSurface) msg.obj);
 			if (sampleView != null) {
 			    mainLayout.removeView(sampleView);
 			    sampleView = null;
@@ -424,7 +424,7 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 		    break;
 		case 1: // add camera surface
 		    if (msg.obj != null) {
-			mainLayout.addView((CameraSurface) msg.obj);
+			mainLayout.addView((CamSurface) msg.obj);
 		    }
 		    break;
 		case 2: // add sample view

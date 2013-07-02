@@ -11,7 +11,7 @@ import android.database.sqlite.SQLiteQueryBuilder;
 import android.provider.BaseColumns;
 import android.util.Log;
 
-public class CameraTagDatabase {
+public class CamDatabase {
 	private static final String TAG = "CameraTagDatabase";
 
 	/* columns names */
@@ -29,7 +29,7 @@ public class CameraTagDatabase {
 	private final TagDatabaseOpenHelper mDatabaseOpenHelper;
 	private static final HashMap<String, String> mColumnMap = buildColumnMap();
 
-	public CameraTagDatabase(Context context) {
+	public CamDatabase(Context context) {
 		mDatabaseOpenHelper = new TagDatabaseOpenHelper(context);
 	}
 

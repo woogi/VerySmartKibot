@@ -20,12 +20,12 @@ import android.widget.Toast;
 
 import com.kt.facerecognition.framework.FaceDetection;
 
-public class CameraSurface extends SurfaceView implements SurfaceHolder.Callback, PreviewCallback, Runnable {
+public class CamSurface extends SurfaceView implements SurfaceHolder.Callback, PreviewCallback, Runnable {
 
 	private static final String TAG = "CameraSurface";
 
 	private static Context ctx;
-	private static CameraSurface instance;
+	private static CamSurface instance;
 	private static boolean reusing;
 
 	private Bitmap bitmap;
@@ -38,10 +38,10 @@ public class CameraSurface extends SurfaceView implements SurfaceHolder.Callback
 	private boolean stopSample, stopSearch;
 
 	/* Constructor */
-	public CameraSurface(Context context) {
+	public CamSurface(Context context) {
 		super(context);
 		ctx = context;
-		CameraUtils.initializeAssets(ctx);
+		CamUtils.initializeAssets(ctx);
 		getHolder().addCallback(this);
 		getHolder().setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
 		stopSample = true;
@@ -61,6 +61,7 @@ public class CameraSurface extends SurfaceView implements SurfaceHolder.Callback
 	/* Interface listener */
 	public interface OnFaceDetectListener {
 		public void onFaceDetected(Bitmap bitmap, int detectedFaceNumber, Rect[] detectedFacePostion);
+		public void onFaceLost();
 	}
 
 	/* Set listener */
@@ -69,10 +70,10 @@ public class CameraSurface extends SurfaceView implements SurfaceHolder.Callback
 	}
 
 	/* public methods */
-	public static CameraSurface getInstance(Context context) {
+	public static CamSurface getInstance(Context context) {
 		synchronized (context) {
 			if (instance == null) {
-				instance = new CameraSurface(context);
+				instance = new CamSurface(context);
 				reusing = false;
 			} else {
 				reusing = true;
@@ -127,14 +128,14 @@ public class CameraSurface extends SurfaceView implements SurfaceHolder.Callback
 		if (camera != null) {
 			camera.setPreviewCallbackWithBuffer(this);
 			Parameters params = camera.getParameters();
-			params.setPreviewSize(Config.FRAME_WIDTH, Config.FRAME_HEIGHT);
+			params.setPreviewSize(CamConf.FRAME_WIDTH, CamConf.FRAME_HEIGHT);
 			if (params.getSupportedFocusModes().contains(Camera.Parameters.FOCUS_MODE_INFINITY)) {
 				params.setFocusMode(Camera.Parameters.FOCUS_MODE_INFINITY);
 			}
 			camera.setParameters(params);
 			allocateBuffer();
 			setPreviewDisplay();
-			startPreview(Config.FRAME_WIDTH / 2, Config.FRAME_HEIGHT / 2);
+			startPreview(CamConf.FRAME_WIDTH / 2, CamConf.FRAME_HEIGHT / 2);
 		}
 		Message msg = new Message();
 		msg.what = 2;
@@ -166,7 +167,6 @@ public class CameraSurface extends SurfaceView implements SurfaceHolder.Callback
 		if (!stopSample) {
 			synchronized (this) {
 				this.data = reducedData(data);
-				this.notify();
 			}
 			new Thread(this).start();
 		}
@@ -178,12 +178,7 @@ public class CameraSurface extends SurfaceView implements SurfaceHolder.Callback
 	public void run() {
 		Bitmap bitmap = null;
 		synchronized (this) {
-			try {
-				this.wait();
-				bitmap = processFrame(data);
-			} catch (InterruptedException e) {
-				Log.e(TAG, "Interrupted: " + e.getMessage());
-			}
+			bitmap = processFrame(data);
 		}
 		if (bitmap != null) {
 			Message msg = new Message();
@@ -196,15 +191,14 @@ public class CameraSurface extends SurfaceView implements SurfaceHolder.Callback
 	/* Private methods */
 	private void allocateBuffer() {
 		int bitsPerPixel = ImageFormat.getBitsPerPixel(camera.getParameters().getPreviewFormat());
-		int w = Config.FRAME_WIDTH;
-		int h = Config.FRAME_HEIGHT;
+		int w = CamConf.FRAME_WIDTH;
+		int h = CamConf.FRAME_HEIGHT;
 		int size = w * h * bitsPerPixel / 8;
 		buffer = new byte[size];
 		camera.addCallbackBuffer(buffer);
 	}
 
 	private void setPreviewDisplay() {
-
 		try {
 			SurfaceView fakeview = this;
 			fakeview.getHolder().setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
@@ -244,13 +238,13 @@ public class CameraSurface extends SurfaceView implements SurfaceHolder.Callback
 	}
 
 	private byte[] reducedData(byte[] data) {
-		int size = Config.FRAME_WIDTH / 2 * Config.FRAME_HEIGHT / 2 + (data.length - Config.FRAME_WIDTH * Config.FRAME_HEIGHT);
+		int size = CamConf.FRAME_WIDTH / 2 * CamConf.FRAME_HEIGHT / 2 + (data.length - CamConf.FRAME_WIDTH * CamConf.FRAME_HEIGHT);
 		byte[] reduced = new byte[size];
-		for (int i = 0, idx = 0; i < Config.FRAME_HEIGHT; i++) {
+		for (int i = 0, idx = 0; i < CamConf.FRAME_HEIGHT; i++) {
 			if (i % 2 == 0) {
-				for (int j = 0; j < Config.FRAME_WIDTH; j++) {
+				for (int j = 0; j < CamConf.FRAME_WIDTH; j++) {
 					if (j % 2 == 1) {
-						reduced[idx] = data[i * Config.FRAME_WIDTH + j];
+						reduced[idx] = data[i * CamConf.FRAME_WIDTH + j];
 						idx++;
 					}
 				}
@@ -274,6 +268,8 @@ public class CameraSurface extends SurfaceView implements SurfaceHolder.Callback
 					if (faceListener != null) {
 						faceListener.onFaceDetected(fullBitmap, faceDetection.detectedFaceNumber, faceDetection.detectedFacePostion);
 					}
+				} else {
+					faceListener.onFaceLost();
 				}
 			}
 			return fullBitmap;
@@ -281,8 +277,8 @@ public class CameraSurface extends SurfaceView implements SurfaceHolder.Callback
 	}
 
 	private void initFaceDetection(int previewWidth, int previewHeight) {
-		String facedetectiondata = Config.DATA_PATH + Config.FACE_DETECTION_DATA_FILE;
-		String eyedetectiondata = Config.DATA_PATH + Config.EYE_DETECTION_DATA_FILE;
+		String facedetectiondata = CamConf.DATA_PATH + CamConf.FACE_DETECTION_DATA_FILE;
+		String eyedetectiondata = CamConf.DATA_PATH + CamConf.EYE_DETECTION_DATA_FILE;
 		/* new Face Detection instance */
 		faceDetection = new FaceDetection();
 		faceDetection.setTrainingFilePath(facedetectiondata, eyedetectiondata);
@@ -296,8 +292,8 @@ public class CameraSurface extends SurfaceView implements SurfaceHolder.Callback
 	private Bitmap getBitmapFromData(byte[] data) {
 		Bitmap bitmap = this.bitmap;
 		int[] rgba = this.rgba;
-		int w = Config.FRAME_WIDTH / 2;
-		int h = Config.FRAME_HEIGHT / 2;
+		int w = CamConf.FRAME_WIDTH / 2;
+		int h = CamConf.FRAME_HEIGHT / 2;
 		applyGrayScale(rgba, data, w, h);
 		bitmap.setPixels(rgba, 0, w, 0, 0, w, h);
 		return flip(bitmap);

@@ -2,7 +2,7 @@ package com.kt.smartKibot;
 
 import android.os.Environment;
 
-public class Config {
+public class CamConf {
 
 	public static final int FRAME_WIDTH = 640;
 	public static final int FRAME_HEIGHT = 480;
@@ -14,6 +14,13 @@ public class Config {
 
 	public static final int DUMMY_CLASS_ID = -100;
 
+	public static final int STOP = 0;
+	public static final int BACK = 1;
+	public static final int FWD = 2;
+	public static final int LEFT = 3;
+	public static final int RIGHT = 4;
+	public static final int LOST = 5;
+	
 	/* only for camera preview */
 	private static final String SDCARD = Environment.getExternalStorageDirectory().getPath() + "/";
 	public static final String SAVE_FACES_PATH = SDCARD + "facerecognition/smartKibot/camera/.project/.face/";

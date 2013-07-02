@@ -18,32 +18,31 @@ import android.util.Log;
 
 import com.kt.facerecognition.framework.FaceRecognition;
 
-public class CameraUtils {
+public class CamUtils {
 	
 	private static final String TAG = "CameraUtils";
-	private static final String N = "nicolas";
 	
 	public static void initializeAssets(Context ctx) {
 		File filesDir = ctx.getFilesDir();
 		AssetManager assets = ctx.getAssets();
-		Config.DATA_PATH = filesDir.getPath() + "/";
-		makeDataDirectory(Config.DETECTION_DATA_DIR);
-		copyAssetsToData(assets, Config.FACE_DETECTION_DATA_FILE);
-		copyAssetsToData(assets, Config.EYE_DETECTION_DATA_FILE, Config.EYE_DETECTION_DATA_FILE_1, Config.EYE_DETECTION_DATA_FILE_2);
+		CamConf.DATA_PATH = filesDir.getPath() + "/";
+		makeDataDirectory(CamConf.DETECTION_DATA_DIR);
+		copyAssetsToData(assets, CamConf.FACE_DETECTION_DATA_FILE);
+		copyAssetsToData(assets, CamConf.EYE_DETECTION_DATA_FILE, CamConf.EYE_DETECTION_DATA_FILE_1, CamConf.EYE_DETECTION_DATA_FILE_2);
 	}
 
-	public static boolean registerName(CameraTagDatabase database, String inputName) {
+	public static boolean registerName(CamDatabase database, String inputName) {
 		/* get input tag name */
 		if (inputName == null || inputName.length() == 0) {
-			Log.i(N, "Name is null or empty");
+			Log.i(TAG, "Name is null or empty");
 			return false;
 		}
 
 		/* check if name already used */
 		Cursor cursorTag = database.getTagMatches(inputName);
 		if (cursorTag != null) {
-			String tag = cursorTag.getString(cursorTag.getColumnIndex(CameraTagDatabase.KEY_TAG_NAME));
-			Log.i(N, inputName + " Looks Like " + tag);
+			String tag = cursorTag.getString(cursorTag.getColumnIndex(CamDatabase.KEY_TAG_NAME));
+			Log.i(TAG, inputName + " Looks Like " + tag);
 			return false;
 		}
 
@@ -55,7 +54,7 @@ public class CameraUtils {
 		boolean copied = false;
 		if (imageUri != null) {
 			String originalPath = imageUri.getPath();
-			Log.i(N, "copy image from [" + originalPath + "] to [" + destinationPath + "]");
+			Log.i(TAG, "copy image from [" + originalPath + "] to [" + destinationPath + "]");
 			copied = FileCopy(originalPath, destinationPath);
 			if (!copied || originalPath == null || destinationPath == null) {
 				return false;
@@ -70,7 +69,7 @@ public class CameraUtils {
 		String strNextCount;
 		checkProjectRootDirectory(tartDirectory);
 		for (count = 0;; count++) {
-			strNextCount = String.format(Locale.getDefault(), "%03d.jpg", count);
+			strNextCount = String.format(Locale.getDefault(), "%03d", count);
 			File file = new File(tartDirectory + strNextCount);
 			if (!file.exists()) {
 				return strNextCount;
@@ -78,7 +77,7 @@ public class CameraUtils {
 		}
 	}
 	
-	public static void addItemToDatabase(CameraTagDatabase database, String tagName, String imagePath, int friendLevel) {
+	public static void addItemToDatabase(CamDatabase database, String tagName, String imagePath, int friendLevel) {
 		/* get empty class ID or find class ID by tagName in database */
 		int[] idAndCount = findClassId(database, tagName);
 		int classId = idAndCount[0];
@@ -87,15 +86,42 @@ public class CameraUtils {
 		 * tag add in database (int classID, String tagName, int countInClass,
 		 * String dirPath, String imageFilepath)
 		 */
-		database.addItem(classId, tagName, tagCount, Config.SAVE_FACES_PATH, imagePath, friendLevel);
+		database.addItem(classId, tagName, tagCount, CamConf.SAVE_FACES_PATH, imagePath, friendLevel);
 		/* make training list file and start training data */
 		if (makeCameraTrainingCSV(database) == true) {
-			FaceRecognition.startTrainingFaces(Config.SAVE_FACES_TRAINING_LIST_PATH, Config.SAVE_FACES_TRAINING_RESULT_PATH);
+			FaceRecognition.startTrainingFaces(CamConf.SAVE_FACES_TRAINING_LIST_PATH, CamConf.SAVE_FACES_TRAINING_RESULT_PATH);
+		}
+		logInAs(database, tagName);
+	}
+	
+	public static void logInAs(CamDatabase database, String tagName) {
+		Cursor cursorTag = database.getTagMatches(tagName);
+		String imagePath = null;
+		int friendlevel = -1;
+
+		if (cursorTag != null) {
+			friendlevel = Integer.parseInt(cursorTag.getString(cursorTag.getColumnIndex(CamDatabase.KEY_FRIEND_LEVEL)));
+			imagePath = cursorTag.getString(cursorTag.getColumnIndex(CamDatabase.KEY_TRAINING_IMAGE_PATH));
+			cursorTag.close();
+			friendlevel++;
+
+			int[] idAndCount = findClassId(database, tagName);
+			int classId = idAndCount[0];
+			int countInClass = idAndCount[1];
+
+			/* remove from db */
+			database.removeItem(String.valueOf(classId));
+
+			/*
+			 * tag add in database (int classID, String tagName, int
+			 * countInClass, String dirPath, String imageFilepath)
+			 */
+			database.addItem(classId, tagName, countInClass, CamConf.SAVE_FACES_PATH, imagePath, friendlevel);
 		}
 	}
 	
 	private static void makeDataDirectory(String dirName) {
-		File dir = new File(Config.DATA_PATH + dirName);
+		File dir = new File(CamConf.DATA_PATH + dirName);
 		if (!dir.exists()) {
 			dir.mkdir();
 		}
@@ -104,7 +130,7 @@ public class CameraUtils {
 	private static void copyAssetsToData(AssetManager assets, String assetFileName) {
 		try {
 			InputStream in = assets.open(assetFileName);
-			OutputStream out = new FileOutputStream(Config.DATA_PATH + assetFileName);
+			OutputStream out = new FileOutputStream(CamConf.DATA_PATH + assetFileName);
 			byte[] buf = new byte[1024];
 			int read;
 
@@ -123,7 +149,7 @@ public class CameraUtils {
 		try {
 			InputStream inPart1 = assets.open(assetFileName1);
 			InputStream inPart2 = assets.open(assetFileName2);
-			OutputStream out = new FileOutputStream(Config.DATA_PATH + destFileName);
+			OutputStream out = new FileOutputStream(CamConf.DATA_PATH + destFileName);
 			byte[] buf = new byte[1024];
 			int read;
 			while ((read = inPart1.read(buf)) != -1) {
@@ -177,7 +203,7 @@ public class CameraUtils {
 		}
 	}
 	
-	private static int[] findClassId(CameraTagDatabase database, String tagName) {
+	private static int[] findClassId(CamDatabase database, String tagName) {
 		int classId = -1;
 		int tagCountInClass = -1;
 		Cursor cursorTag = database.getTagMatches(tagName);
@@ -196,7 +222,7 @@ public class CameraUtils {
 			/* find empty class ID [end] */
 		} else {
 			/* find saved class ID same with input tagName... */
-			classId = cursorTag.getInt(cursorTag.getColumnIndex(CameraTagDatabase.KEY_CLASS_ID));
+			classId = cursorTag.getInt(cursorTag.getColumnIndex(CamDatabase.KEY_CLASS_ID));
 			tagCountInClass = cursorTag.getCount();
 			cursorTag.close();
 		}
@@ -206,16 +232,16 @@ public class CameraUtils {
 		return idAndCount;
 	}
 	
-	private static boolean makeCameraTrainingCSV(CameraTagDatabase database) {
+	private static boolean makeCameraTrainingCSV(CamDatabase database) {
 		Cursor cursor = database.getPathNClassID();
 		boolean status = false;
 		if (cursor != null) {
-			String dumpFilePath = Config.SAVE_FACES_TRAINING_LIST_PATH;
+			String dumpFilePath = CamConf.SAVE_FACES_TRAINING_LIST_PATH;
 			try {
 				BufferedWriter out = new BufferedWriter(new FileWriter(dumpFilePath));
 				cursor.moveToFirst();
 				for (int i = 0; i < cursor.getCount(); i++) {
-					String strOut = cursor.getString(cursor.getColumnIndex(CameraTagDatabase.KEY_TRAINING_IMAGE_PATH)) + ";" + cursor.getInt(cursor.getColumnIndex(CameraTagDatabase.KEY_CLASS_ID));
+					String strOut = cursor.getString(cursor.getColumnIndex(CamDatabase.KEY_TRAINING_IMAGE_PATH)) + ";" + cursor.getInt(cursor.getColumnIndex(CamDatabase.KEY_CLASS_ID));
 					out.write(strOut);
 					out.newLine();
 					cursor.moveToNext();

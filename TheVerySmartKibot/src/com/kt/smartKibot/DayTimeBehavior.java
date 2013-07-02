@@ -13,7 +13,7 @@ public class DayTimeBehavior extends RobotBehavior {
 	private static final String TAG = "DayTimeBehavior";
 	long lastTouch = 0;
 	private volatile boolean isEnd = false;
-
+	
 	public DayTimeBehavior(ArrayList<RobotLog> logHistory) {
 		super(logHistory);
 	}
@@ -69,12 +69,12 @@ public class DayTimeBehavior extends RobotBehavior {
 				}
 			}
 
-			if (StateFollowing.class.isInstance(getCurrentState())) {
-			    if (evt.getParam1() == 4) {
-				changeState(new StateSleeping());
-				return;
-			    }
-			}
+			// if (StateFollowing.class.isInstance(getCurrentState())) {
+			// if (evt.getParam1() == 4) {
+			// changeState(new StateSleeping());
+			// return;
+			// }
+			// }
 
 			if (StateEvasion.class.isInstance(getCurrentState())) {
 				if (evt.getParam1() == 4) {
