@@ -11,7 +11,6 @@ public class FaceDetector implements IRobotEvtDelegator, CamSurface.OnFaceDetect
 	private static CamSurface cameraSurface;
 	private static FaceDetector instance;
 
-	private boolean faceDetected;
 	private IRobotEvtHandler handler;
 
 	@Override
@@ -22,7 +21,6 @@ public class FaceDetector implements IRobotEvtDelegator, CamSurface.OnFaceDetect
 		}
 		RobotEvent evt = new RobotEvent(RobotEvent.EVT_FACE_DETECTION);
 		handler.handle(null, evt);
-		faceDetected = true;
 	}
 	
 	@Override
@@ -50,7 +48,6 @@ public class FaceDetector implements IRobotEvtDelegator, CamSurface.OnFaceDetect
 			cameraSurface.setOnFaceDetectListener(this);
 			cameraSurface.start();
 		}
-		faceDetected = false;
 	}
 
 	@Override
@@ -67,10 +64,5 @@ public class FaceDetector implements IRobotEvtDelegator, CamSurface.OnFaceDetect
 			instance = new FaceDetector();
 		}
 		return instance;
-	}
-
-	public boolean isFaceDetected() {
-		Log.i(TAG, "isFaceDetected ? " + faceDetected);
-		return faceDetected;
 	}
 }

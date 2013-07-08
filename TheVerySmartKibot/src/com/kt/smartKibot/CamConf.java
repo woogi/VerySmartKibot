@@ -33,4 +33,11 @@ public class CamConf {
 	public static final String EYE_DETECTION_DATA_FILE_1 = DETECTION_DATA_DIR + "haarcascade_eye_tree_eyeglasses1.xml";
 	public static final String EYE_DETECTION_DATA_FILE_2 = DETECTION_DATA_DIR + "haarcascade_eye_tree_eyeglasses2.xml";
 	public static final String FACE_DETECTION_DATA_FILE = DETECTION_DATA_DIR + "lbpcascade_frontalface.xml";
+	
+	public static final int RM_VIEWS = 0;
+	public static final int ADD_CAM = 1;
+	public static final int ADD_SAMPLE = 2;
+	public static final int ADD_RECT = 3;
+	public static final int DRAW_SAMPLE = 4;
+	public static final int DRAW_RECT = 5;
 }

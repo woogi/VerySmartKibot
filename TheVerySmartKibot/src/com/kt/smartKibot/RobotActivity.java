@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -37,6 +38,7 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 	private static RelativeLayout mainLayout;
 	private static Context ctx;
 	private static ImageView sampleView;
+	private static FaceRectangle faceRectangle;
 	private static TextView logView;
 	
 	
@@ -405,29 +407,28 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 		}
 	}
 	
-	public static Handler UIhandler = new Handler() {
+	public static Handler UIHandler = new Handler() {
 	    public void handleMessage(Message msg) {
 		switch (msg.what) {
-		case -1: // remove camera surface and sample view
+		case CamConf.RM_VIEWS:
 		    if (msg.obj != null) {
 			mainLayout.removeView((CamSurface) msg.obj);
+			if (faceRectangle != null) {
+			    mainLayout.removeView(faceRectangle);
+			    faceRectangle = null;
+			}
 			if (sampleView != null) {
 			    mainLayout.removeView(sampleView);
 			    sampleView = null;
 			}
 		    }
 		    break;
-		case 0: // display sample
-		    if (sampleView != null) {
-			sampleView.setImageBitmap((Bitmap) msg.obj);
-		    }
-		    break;
-		case 1: // add camera surface
+		case CamConf.ADD_CAM:
 		    if (msg.obj != null) {
 			mainLayout.addView((CamSurface) msg.obj);
 		    }
 		    break;
-		case 2: // add sample view
+		case CamConf.ADD_SAMPLE:
 		    if (sampleView == null) {
 			sampleView = new ImageView(ctx);
 			if (msg.obj != null) {
@@ -435,6 +436,25 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 			}
 			sampleView.setBackgroundColor(Color.BLACK);
 			mainLayout.addView(sampleView);
+		    }
+		    break;
+		case CamConf.ADD_RECT:
+		    if (faceRectangle == null) {
+			faceRectangle = new FaceRectangle(ctx);
+			if (msg.obj != null) {
+			    faceRectangle.setLayoutParams((RelativeLayout.LayoutParams) msg.obj);
+			}
+			mainLayout.addView(faceRectangle);
+		    }
+		    break;
+		case CamConf.DRAW_SAMPLE:
+		    if (sampleView != null) {
+			sampleView.setImageBitmap((Bitmap) msg.obj);
+		    }
+		    break;
+		case CamConf.DRAW_RECT:
+		    if (faceRectangle != null) {
+			faceRectangle.draw((Rect) msg.obj);
 		    }
 		    break;
 		}
@@ -449,5 +469,4 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 	    logView.append(text + "\n");
 	    ((ScrollView) logView.getParent()).fullScroll(View.FOCUS_DOWN);
 	}
-
 }
