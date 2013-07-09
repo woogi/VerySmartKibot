@@ -26,6 +26,7 @@ public class RobotEvent {
 	public static final int EVT_FACE_DETECTION=7;
 	public static final int EVT_FACE_RECOGNITION=8;
 	public static final int EVT_TOUCH_SCREEN=9;
+	public static final int EVT_FACE_LOST=10;
 
 	
 	

@@ -256,6 +256,10 @@ public class DayTimeBehavior extends RobotBehavior {
 		case RobotEvent.EVT_FACE_RECOGNITION: {
 		    Log.d(TAG, "Face Recognition Event");
 		} break;
+		case RobotEvent.EVT_FACE_LOST: {
+		    Log.d(TAG, "Face Lost Event");
+		    changeState(new StateSleeping());
+		} break;
 
 		}// end of switch
 	}// end of handle

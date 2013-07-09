@@ -21,13 +21,15 @@ public class FaceRecognizer implements IRobotEvtDelegator,
 	CamSurface.OnFaceDetectListener {
 
     private static final String TAG = "FaceRecognizer";
+    private static final int MAX_FAILURE = 200;
 
     private static CamSurface cameraSurface;
     private static FaceRecognizer instance;
 
-    private IRobotEvtHandler handler;
+    private int cpt;
     private CamDatabase database;
     private int direction;
+    private IRobotEvtHandler handler;
     private String loggedName;
     private Rect reference;
     private int tolerance;
@@ -38,6 +40,7 @@ public class FaceRecognizer implements IRobotEvtDelegator,
 	handleDetectedFaces(bitmap, detectedFaceNumber, detectedFacePostion);
 	RobotEvent evt = new RobotEvent(RobotEvent.EVT_FACE_RECOGNITION);
 	handler.handle(null, evt);
+	cpt = 0;
     }
 
     @Override
@@ -49,6 +52,12 @@ public class FaceRecognizer implements IRobotEvtDelegator,
 	msg.what = CamConf.DRAW_RECT;
 	msg.obj = null;
 	RobotActivity.UIHandler.sendMessage(msg);
+	cpt = (++cpt) % MAX_FAILURE;
+	Log.i("nicolas", "FAIL #" + cpt);
+	if (cpt == 0) {
+	    RobotEvent event = new RobotEvent(RobotEvent.EVT_FACE_LOST);
+	    handler.handle(null, event);
+	}
     }
 
     @Override
@@ -73,6 +82,7 @@ public class FaceRecognizer implements IRobotEvtDelegator,
 	    cameraSurface.setOnFaceDetectListener(this);
 	    cameraSurface.start();
 	}
+	cpt = 0;
 	/* init direction */
 	direction = CamConf.LOST;
 	/* init database */
