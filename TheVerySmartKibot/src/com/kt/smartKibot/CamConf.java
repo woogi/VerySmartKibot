@@ -27,6 +27,10 @@ public class CamConf {
 	public static final String SAVE_FACES_TRAINING_LIST_PATH = SDCARD + "facerecognition/smartKibot/camera/.project/.training.csv";
 	public static final String SAVE_FACES_TRAINING_RESULT_PATH = SDCARD + "facerecognition/smartKibot/camera/.project/.modeldata.dat";
 
+	public static final String SAVE_TARGETS_PATH = SDCARD + "facerecognition/smartKibot/camera/.targets/";
+	public static final String SAVE_TARGETS_TRAINING_LIST_PATH = SDCARD + "facerecognition/smartKibot/camera/.targets/.training.csv";
+	public static final String SAVE_TARGETS_TRAINING_RESULT_PATH = SDCARD + "facerecognition/smartKibot/camera/.targets/.modeldata.dat";
+
 	public static String DATA_PATH;
 	public static final String DETECTION_DATA_DIR = "detectiondata/";
 	public static final String EYE_DETECTION_DATA_FILE = DETECTION_DATA_DIR + "haarcascade_eye_tree_eyeglasses.xml";

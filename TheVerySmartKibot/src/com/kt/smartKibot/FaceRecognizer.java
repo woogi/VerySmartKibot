@@ -46,15 +46,15 @@ public class FaceRecognizer implements IRobotEvtDelegator,
     @Override
     public void onFaceLost() {
 	direction = CamConf.LOST;
-	RobotEvent evt = new RobotEvent(RobotEvent.EVT_FACE_RECOGNITION);
-	handler.handle(null, evt);
 	Message msg = new Message();
 	msg.what = CamConf.DRAW_RECT;
 	msg.obj = null;
 	RobotActivity.UIHandler.sendMessage(msg);
-	cpt = (++cpt) % MAX_FAILURE;
-	Log.i("nicolas", "FAIL #" + cpt);
+	cpt = ++cpt % MAX_FAILURE;
+	Log.i(TAG, "FAIL #" + cpt);
 	if (cpt == 0) {
+	    RobotEvent evt = new RobotEvent(RobotEvent.EVT_FACE_RECOGNITION);
+	    handler.handle(null, evt);
 	    RobotEvent event = new RobotEvent(RobotEvent.EVT_FACE_LOST);
 	    handler.handle(null, event);
 	}

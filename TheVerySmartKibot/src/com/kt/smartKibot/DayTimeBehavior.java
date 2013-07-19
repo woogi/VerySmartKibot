@@ -28,7 +28,7 @@ public class DayTimeBehavior extends RobotBehavior {
 		// TODO Auto-generated method stub
 		super.onStart(ctx);
 		RobotTimer.getInstance().start();
-		changeState(new StateGreeting());
+		changeState(new StateLookAround(null, history_log));
 	}
 
 	/*
@@ -69,13 +69,6 @@ public class DayTimeBehavior extends RobotBehavior {
 				}
 			}
 
-			// if (StateFollowing.class.isInstance(getCurrentState())) {
-			// if (evt.getParam1() == 4) {
-			// changeState(new StateSleeping());
-			// return;
-			// }
-			// }
-
 			if (StateEvasion.class.isInstance(getCurrentState())) {
 				if (evt.getParam1() == 4) {
 					changeState(new StateSleeping());
@@ -83,17 +76,17 @@ public class DayTimeBehavior extends RobotBehavior {
 				}
 			}
 
-			if (StateLookAround.class.isInstance(getCurrentState())) {
-				if (evt.getParam1() == 4) {
-					if(StateGreeting.class.isInstance(getLastState())) {
-						changeState(new StateWandering(evt, history_log));
-					}
-					else {
-						changeState(new StateSleeping());
-					}
-					return;
-				}
-			}
+			// if (StateLookAround.class.isInstance(getCurrentState())) {
+			// if (evt.getParam1() == 4) {
+			// if(StateGreeting.class.isInstance(getLastState())) {
+			// changeState(new StateWandering(evt, history_log));
+			// }
+			// else {
+			// changeState(new StateSleeping());
+			// }
+			// return;
+			// }
+			// }
 
 			if (StateTouchResponse.class.isInstance(getCurrentState())) {
 				if (evt.getParam1() == 4) {
@@ -244,6 +237,7 @@ public class DayTimeBehavior extends RobotBehavior {
 
 		case RobotEvent.EVT_FACE_DETECTION: {
 			Log.d(TAG, "Face Detection Event");
+			Log.i("nicolas", "detection event param: " + evt.getParam1());
 			if (StateLookAround.class.isInstance(getCurrentState())) {
 			    changeState(new StateGreeting());
 			} else if (StateWandering.class.isInstance(getCurrentState())) {
