@@ -1,15 +1,21 @@
 package com.kt.smartKibot;
 
 import java.io.File;
+import java.util.ArrayList;
 
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.Rect;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.speech.RecognitionListener;
+import android.speech.RecognizerIntent;
+import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech.OnUtteranceCompletedListener;
 import android.text.format.Time;
 import android.util.Log;
@@ -37,16 +43,25 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 	private ScreenSaverOpenGLSurface mSurface = null;
 	private boolean DEBUG=true;
 	private int currentFaceMode=RobotFace.MODE_UNKNOWN;
-	IRobotEvtHandler touchEvtHandler=null;
+	private IRobotEvtHandler evtHandler=null;
+	private static FaceRectangle faceRectangle=null;
 	private static RelativeLayout mainLayout;
 	private static Context ctx;
-	private static FaceCameraSurface cameraSurface;
 	private static ImageView sampleView;
+	
 	private static TextView logView;
 	private static TextView modeIndicator=null;
+	private ImageView earImage=null;
+	private ImageView logInImage=null;
 	private static volatile boolean isEnd=false;
 	GestureDetector gestureDetector=null;
-	
+	SpeechRecognizer speechRecognizer=null;
+	public static final int ACTION_CHECK_NOISE=0;
+	public static final int ACTION_START_LISTEN=1;
+	public static final int END_ACTION_CHECK_NOISE=2;
+	public static final int END_ACTION_LISTEN=3;
+	public static final int UPDATE_LOGIN_UI=4;
+	volatile int curAction=-1;
 	
 	
 	private static final String baseFacePath = "/system/media/robot/face/";
@@ -58,7 +73,275 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 	public static final String ACTION_CHANGE_FACE="com.kt.kibot.ChangeFace";
 	public static final String ACTION_FINISH_FACE="com.kt.kibot.FinishFace";
 	
+	BlinkingEarThread blinkingEarThread=null;
+	
+	
+	class BlinkingEarThread extends Thread{
+		
+		boolean isStop=false;
+		
+		public  void run() {
+			// TODO Auto-generated method stub
+			
+			isStop=false;
+			while(!isStop)
+			{
+				
+				 runOnUiThread(new Runnable(){
+			            @Override
+			             public void run() {
+			            	showEar(true);
+							try {
+								Thread.sleep(100);
+							} catch (InterruptedException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+							showEar(false);
+			             }
+			        });
+				
+				
+			}
 
+		}
+		
+		public void stopIt(){
+			isStop=true;
+		}
+		
+	};
+	
+	private void startBlinkingEar(){
+		
+		blinkingEarThread=new BlinkingEarThread();
+		
+		blinkingEarThread.start();
+	
+	
+	}
+	
+	private void stopBlinkingEar(){
+	
+		if(blinkingEarThread!=null)
+		{
+			blinkingEarThread.stopIt();
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			blinkingEarThread=null;
+		}
+		
+	}
+	
+	private void setLogInIndicator(boolean logIn){
+		
+		if(logIn)
+		{
+			logInImage.setImageResource(R.drawable.in);
+		}else{
+			logInImage.setImageResource(R.drawable.out);
+		}
+		
+	}
+
+	private void showEar(boolean show){
+		if(earImage!=null){
+			if(show==true){
+			earImage.setVisibility(View.VISIBLE);
+			}else{
+				earImage.setVisibility(View.INVISIBLE);
+			}
+		}
+	}
+	
+	private Handler mainHandler=new Handler() {
+		int arg1=-1;
+		int arg2=-1;
+		
+	
+		public void handleMessage(Message m) {
+			if(m.what==ACTION_CHECK_NOISE) {
+				
+				
+				//start speech recognizer
+				Log.d(TAG,"handleMessge ,ACTION_CHECK_NOISE");
+				
+				if(speechRecognizer!=null){
+					speechRecognizer.stopListening();
+					speechRecognizer.cancel();
+					speechRecognizer.destroy();
+					speechRecognizer=null;
+				}
+				
+				speechRecognizer=SpeechRecognizer.createSpeechRecognizer(RobotActivity.this);
+				speechRecognizer.setRecognitionListener(recognitionListener);
+				
+				Intent intent=new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+				intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE,getPackageName());
+				intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE,"ko-KR");
+				intent.putExtra(RecognizerIntent.DETAILS_META_DATA,"CHECK_NOISE");
+		        if(speechRecognizer!=null) speechRecognizer.startListening(intent);
+		        
+				curAction=ACTION_CHECK_NOISE;
+		        
+		        arg1=m.arg1;
+		        
+			}
+			else if(m.what==END_ACTION_CHECK_NOISE) {
+				Log.d(TAG,"handleMessge ,END_ACTION_CHECK_NOISE");
+				
+				if(speechRecognizer!=null) {
+					Log.d(TAG,"try to destory speechRecognizer");
+					speechRecognizer.stopListening();
+					speechRecognizer.cancel();
+					speechRecognizer.destroy();
+					speechRecognizer=null;
+					Log.d(TAG,"end of speech recognition");
+				}
+				
+				arg2=m.arg1;
+				
+				curAction=END_ACTION_CHECK_NOISE;
+				
+				RobotChatting.getInstance(RobotActivity.this).onResultCheckNoise(arg1, arg2);
+				
+			}
+			else if(m.what==ACTION_START_LISTEN){
+				Log.d(TAG,"handleMessge ,ACTION_START_LISTEN");
+				
+				if(speechRecognizer!=null){
+					speechRecognizer.stopListening();
+					speechRecognizer.cancel();
+					speechRecognizer.destroy();
+					speechRecognizer=null;
+				}
+				
+				speechRecognizer=SpeechRecognizer.createSpeechRecognizer(RobotActivity.this);
+				speechRecognizer.setRecognitionListener(recognitionListener);
+				
+				Intent intent=new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+				intent.putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE,getPackageName());
+				intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE,"ko-KR");
+				intent.putExtra(RecognizerIntent.DETAILS_META_DATA,"CHECK_NOISE");
+		        if(speechRecognizer!=null) speechRecognizer.startListening(intent);
+		        
+				curAction=ACTION_START_LISTEN;
+				
+				
+			}else if(m.what==END_ACTION_LISTEN){
+				Log.d(TAG,"handleMessge ,END_ACTION_LISTEN");
+				
+				if(speechRecognizer!=null) {
+					Log.d(TAG,"try to destory speechRecognizer");
+					speechRecognizer.stopListening();
+					speechRecognizer.cancel();
+					speechRecognizer.destroy();
+					speechRecognizer=null;
+					Log.d(TAG,"end of speech recognition");
+				}
+				
+				int isOK=m.arg1;
+				
+				curAction=END_ACTION_LISTEN;
+				RobotChatting.getInstance(RobotActivity.this).onResultListen(isOK,(ArrayList<String>)m.obj);
+				
+			}else if(m.what==UPDATE_LOGIN_UI){
+				
+				if(null==LogIn.getInstance().whosLogIn()){
+					setLogInIndicator(false);
+				}else{
+					setLogInIndicator(true);
+				}
+				
+			}
+		}
+		
+		
+	};
+	
+	
+	RecognitionListener recognitionListener=new RecognitionListener() {
+	
+		
+		public void onReadyForSpeech(Bundle arg0) {
+			Log.d(TAG,"onReadyForSpeech()...");
+			RobotMotion.getInstance(ctx).led(0, 1, 3);
+			
+			if(curAction==ACTION_START_LISTEN){
+			MediaPlayer mp = MediaPlayer.create(ctx, R.raw.ding);  
+			  mp.start();
+			}
+		}
+		
+		public void onBeginningOfSpeech() {
+			Log.d(TAG,"onBeginningOfSpeech()...");
+			
+			showEar(true);
+			//startBlinkingEar();
+		}
+
+		public void onEndOfSpeech() {
+			Log.d(TAG,"onEndOfSpeech()...");
+			
+			showEar(false);
+			//stopBlinkingEar();
+			RobotMotion.getInstance(ctx).offAllLed();
+
+		}
+
+		public void onResults(Bundle bundle) {
+			Log.d(TAG,"onResults()...");
+			
+			
+			ArrayList<String> results=bundle.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+			for(int i=0;i<results.size();i++)
+				Log.d(TAG,"result("+i+"): "+results.get(i));
+			
+			if(curAction==ACTION_CHECK_NOISE)
+			{
+				mainHandler.sendMessage(mainHandler.obtainMessage(END_ACTION_CHECK_NOISE,NoiseDetector.PARAM_KIND_HUMAN_VOICE, 0));
+			}
+			else if(curAction==ACTION_START_LISTEN){
+				mainHandler.sendMessage(mainHandler.obtainMessage(END_ACTION_LISTEN, 1,0, (Object)results));
+			}
+			
+			
+			
+			showEar(false);
+			
+		}
+		
+		public void onError(int arg0) {
+			Log.d(TAG,"onError()...");
+			
+			if(curAction==ACTION_CHECK_NOISE)
+				mainHandler.sendMessage(mainHandler.obtainMessage(END_ACTION_CHECK_NOISE,NoiseDetector.PARAM_KIND_NOT_FROM_HUMAN,0));
+			else if(curAction==ACTION_START_LISTEN){
+				mainHandler.sendMessage(mainHandler.obtainMessage(END_ACTION_LISTEN, 0,0,null));
+			}
+			
+			
+			
+			showEar(false);
+		}
+		
+		public void onBufferReceived(byte[] arg0) { }
+		public void onEvent(int arg0, Bundle arg1) {
+			Log.d("KibotTest","onEvent()...");
+		}
+		public void onPartialResults(Bundle arg0) {
+			Log.d("KibotTest","onPartialResults()...");
+		}
+		public void onRmsChanged(float arg0) { 
+	//		Log.d("KibotTest","rms:"+arg0);
+		}
+		
+    };
+	
 	@Override
 	public void finish() {
 		isEnd=true;
@@ -70,6 +353,7 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 		RobotSpeech.finish();
 		RobotMotion.finish();
 		RobotFace.finish();
+	//	RobotChatting.finish();
 		super.finish();
 	}
 
@@ -152,7 +436,7 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 	@Override
 	public void installHandler(IRobotEvtHandler handler) {
 		// TODO Auto-generated method stub
-		touchEvtHandler=handler;
+		evtHandler=handler;
 	}
 
 	@Override
@@ -248,12 +532,20 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
     	logView = (TextView) findViewById(R.id.log_view);
     	((ScrollView) logView.getParent()).setVerticalScrollBarEnabled(false);
      
+    	
+    	
     	//debug screen is invisible.
-		RobotActivity.showDbgLogScreen(false);
+		RobotActivity.showDbgLogScreen(true);
 		    	modeIndicator=(TextView)findViewById(R.id.robot_mode);
     	
     	modeIndicator.setBackgroundColor(Color.YELLOW);
 		
+    	
+    	earImage=(ImageView) findViewById(R.id.listen_image);
+    	logInImage=(ImageView) findViewById(R.id.logIn);
+    	
+    	showEar(false);
+    	
 		Intent it=getIntent();
 		
 		//launcher 화면 에서  최초실행 
@@ -265,14 +557,23 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 			RobotSpeech.getInstance(this);
 			RobotMotion.getInstance(this);
 			RobotFace.getInstance(this);
+			RobotChatting.getInstance(this);
+			
+			RobotChatting.getInstance(this).setMainActivityHandler(mainHandler);
 			
 			//write asset data on file system.
 		//	new UtilAssets(getApplicationContext(),"rmm").toFileSystem();
 			
-			brain=new RobotBrain(getApplicationContext());
+			brain=new RobotBrain(getApplicationContext(),mainHandler);
 			
 			//screen touch event need refactoring.
 			installHandler(brain);	
+			
+			
+			//todo refactoring 
+			//NoiseDetector.getInstance(this).setMainActivityHandler(mainHandler);
+			
+			
 	
 		}
 
@@ -371,7 +672,7 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 			            	if (Math.abs(e1.getY() - e2.getY()) > SWIPE_MAX_OFF_PATH)
 			            		return false;
 			            	
-								touchEvtHandler.handle(getApplicationContext(), 
+								evtHandler.handle(getApplicationContext(), 
 								new RobotEvent(RobotEvent.EVT_SWIPE_SCREEN,0,0,null));
 								writeLog("event swipe screen right to left");
 			                
@@ -383,7 +684,7 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 			            	if (Math.abs(e1.getY() - e2.getY()) > SWIPE_MAX_OFF_PATH)
 			            		return false;
 			            
-								touchEvtHandler.handle(getApplicationContext(), 
+								evtHandler.handle(getApplicationContext(), 
 								new RobotEvent(RobotEvent.EVT_SWIPE_SCREEN,1,0,null));
 								writeLog("event swipe screen left to right");
 			            
@@ -395,7 +696,7 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 			            	if (Math.abs(e1.getX() - e2.getX()) > SWIPE_MAX_OFF_PATH)
 			            		return false;
 			            	
-								touchEvtHandler.handle(getApplicationContext(), 
+								evtHandler.handle(getApplicationContext(), 
 								new RobotEvent(RobotEvent.EVT_SWIPE_SCREEN,2,0,null));
 								writeLog("event swipe screen down to up");
 			            
@@ -407,7 +708,7 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 			            	if (Math.abs(e1.getX() - e2.getX()) > SWIPE_MAX_OFF_PATH)
 			            		return false;
 			            	
-								touchEvtHandler.handle(getApplicationContext(), 
+								evtHandler.handle(getApplicationContext(), 
 								new RobotEvent(RobotEvent.EVT_SWIPE_SCREEN,3,0,null));
 								writeLog("event swipe screen up to down");
 			             
@@ -422,7 +723,7 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 				
 				@Override
 				public void onLongPress(MotionEvent e) {
-					touchEvtHandler.handle(getApplicationContext(), 
+					evtHandler.handle(getApplicationContext(), 
 					new RobotEvent(RobotEvent.EVT_LONG_PRESS_SCREEN));
 					writeLog("event long press screen");
 					
@@ -438,7 +739,7 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 				@Override
 				public void onShowPress(MotionEvent e) {
 			
-					touchEvtHandler.handle(getApplicationContext(), 
+					evtHandler.handle(getApplicationContext(), 
 					new RobotEvent(RobotEvent.EVT_TOUCH_SCREEN));
 					writeLog("event touch screen");
 					
@@ -573,74 +874,66 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 		}
 	}
 	
-	private static Handler layoutHandler = new Handler() {
-		public void handleMessage(Message msg) {
-		    switch (msg.what) {
-		    case 0:
-			if (cameraSurface != null){
-        		    mainLayout.addView(cameraSurface);
+	public static Handler UIHandler = new Handler() {
+	    public void handleMessage(Message msg) {
+		switch (msg.what) {
+		case CamConf.RM_VIEWS:
+		    if (msg.obj != null) {
+			mainLayout.removeView((CamSurface) msg.obj);
+			if (faceRectangle != null) {
+			    mainLayout.removeView(faceRectangle);
+			    faceRectangle = null;
 			}
-			break;
-		    case 1:
-			if (cameraSurface != null){
-        		    cameraSurface.stopSample();
-        		    mainLayout.removeView(cameraSurface);
-			}
-			break;
-		    case 2:
 			if (sampleView != null) {
-        		    mainLayout.addView(sampleView);
+			    mainLayout.removeView(sampleView);
+			    sampleView = null;
 			}
-			break;
-		    case 3:
-			if (sampleView != null){
-        		    mainLayout.removeView(sampleView);
-        		    sampleView = null;
-			}
-			break;
-		    case 4:
-			if (sampleView != null) {
-			    sampleView.setImageBitmap((Bitmap) msg.obj);
-			}
-			break;
 		    }
-		};
+		    break;
+		case CamConf.ADD_CAM:
+		    if (msg.obj != null) {
+			mainLayout.addView((CamSurface) msg.obj);
+		    }
+		    break;
+		case CamConf.ADD_SAMPLE:
+		    if (sampleView == null) {
+			sampleView = new ImageView(ctx);
+			if (msg.obj != null) {
+			    sampleView.setLayoutParams((RelativeLayout.LayoutParams) msg.obj);
+			}
+			sampleView.setBackgroundColor(Color.BLACK);
+			mainLayout.addView(sampleView);
+		    }
+		    break;
+		    
+		case CamConf.ADD_RECT:
+			  if (faceRectangle == null) {
+			    faceRectangle = new FaceRectangle(ctx);
+			    if (msg.obj != null) {
+			      RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) msg.obj;
+			      faceRectangle.setLayoutParams(params);
+			      faceRectangle.setSize(params.width, params.height);
+			    }
+			    mainLayout.addView(faceRectangle);
+			  }
+			break;
+			
+			
+		
+		case CamConf.DRAW_SAMPLE:
+		    if (sampleView != null) {
+			sampleView.setImageBitmap((Bitmap) msg.obj);
+		    }
+		    break;
+		case CamConf.DRAW_RECT:
+		    if (faceRectangle != null) {
+			faceRectangle.draw((Rect[]) msg.obj);
+		    }
+		    break;
+		}
 	    };
+	};
 	
-	public static FaceCameraSurface addCameraSurface() {
-	    cameraSurface = new FaceCameraSurface(ctx);
-	    RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(180, 135);
-	    params.topMargin = 10;
-	    params.rightMargin = 10;
-	    params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, RelativeLayout.TRUE);
-	    cameraSurface.setLayoutParams(params);
-	    layoutHandler.sendEmptyMessage(0);
-	    return cameraSurface;
-	}
-
-	public static void removeCameraSurface(){
-	    layoutHandler.sendEmptyMessage(1);
-	}
-
-	public static ImageView addSampleView(){
-	    sampleView = new ImageView(ctx);
-	    RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(180, 135);
-	    params.topMargin = 10;
-	    params.rightMargin = 10;
-	    params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, RelativeLayout.TRUE);
-	    sampleView.setLayoutParams(params);
-	    sampleView.setBackgroundColor(Color.BLACK);
-	    layoutHandler.sendEmptyMessage(2);
-	    return sampleView;
-	}
-	
-	public static void removeSampleView(){
-	    layoutHandler.sendEmptyMessage(3);
-	}
-    
-        public static void displaySample(Bitmap bitmap) {
-            layoutHandler.sendMessage(layoutHandler.obtainMessage(4, bitmap));
-        }
 	
 	 public static void writeLog(String text){
 		 

@@ -69,7 +69,7 @@ public class StateEvasion implements IRobotState {
 					}
 					
 					if(cause==CAUSE_SLEEPY){
-						RobotSpeech.getInstance(ctx).speak("아웅 졸려요",0.9f,1.0f);
+						RobotSpeech.getInstance(ctx).speak("아웅 졸리니깐 만지지 말아요",0.9f,1.0f);
 					}
 					
 				}

@@ -34,14 +34,11 @@ public class RobotMotion {
 	
 	// led 위치에 적용되는 색
 	private int[] _ccsidx = { 0, 0, 0, 0, 0 };
-
 	// led 색상
 	private static int[] s_ccs = { 0xFF000000, 0xFF0000FF, 0xFF00FF00,
 			0xFF00FFFF, 0xFFFF0000, 0xFFFF00FF, 0xFFFFFF00, 0xFFFFFFFF };
-
 	// led 점등 속도
-	private double ledIntervals[] = { 0.5, 0.25, 0.16, 0.12, 0.1 }; // 1hz, 2hz, 3hz,
-															// 4hz, 5hz,
+	private double ledIntervals[] = {1, 0.5, 0.25, 0.16, 0.12, 0.1 }; // 1hz, 2hz, 3hz,
 	private LedThread[] ledDimThreads = { null, null, null, null, null, null };
 	
 	// 속도
@@ -519,19 +516,12 @@ public class RobotMotion {
 	 */
 	public void led(int loc, int speed, int color) {
 		final int at = loc;
-		double tmp = 0;
 		
-		if (speed != 0) {
-			tmp = 1.0 / (speed * 2);
-		} else {
-			// 속도가 0일때 계산 차 때문에 선언시 thread 선언시 순서가 달라짐.
-			// 달라지는 순서를 맞추기 위해서 아래와 같이 계산을 두번 함.
-			tmp = 1.0 / (speed * 2);
-			tmp = 0;
-		}
-		
-		final double interval = tmp * 1000;
+		final double interval = ledIntervals[speed];
+	
+		//color index, 실제 color는 s_ccs
 		_ccsidx[at] = color;
+		
 		if (_ccsidx[at] >= s_ccs.length)
 			_ccsidx[at] = 0;
 
@@ -546,37 +536,17 @@ public class RobotMotion {
 				thisAt = at;
 				numOfInit++;
 				thisNum = numOfInit;
-				// Log.i(TAG, "led : "+ interval + " : " + thisAt + " : " +
-				// s_ccs[_ccsidx[thisAt]]);
+				 Log.i("led", "led : "+ interval + " : " + thisAt + " : " +
+				 s_ccs[_ccsidx[thisAt]]);
+				 
 				while (alive) {
 					try {
 						if (_robotManager == null)
 							return;
-						// if(D) Log.i(TAG, "LED" + 4);
+						
 						int cc = s_ccs[_ccsidx[at]];
 						long pastMillTime = System.currentTimeMillis();
 						
-						if (interval == 0) {
-							// 속도가 0일 때 먼저 죽는 경우가 있기 때문에 기다렸다가 속도 설정하고 죽음
-//							while ((System.currentTimeMillis() - pastMillTime) < 1000) {
-//
-//							}
-							try {
-								sleep(1000);
-							} catch (InterruptedException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}
-							if (at == 0) {
-								_robotManager.setHornLedColors(cc, cc);
-							} else if (at == 2) {
-								_robotManager.setArmLedColors(cc, cc);
-							} else if (at == 4) {
-								_robotManager.setLedColor(at, cc);
-							}
-							isOn = true;
-							return ;
-						} else {
 							if (isOn) {//try to off when it is on
 								if (at == 0) {
 									_robotManager.setHornLedColors(s_ccs[0],
@@ -601,10 +571,7 @@ public class RobotMotion {
 
 							pastMillTime = System.currentTimeMillis();
 							int time = (int) interval;
-							// if(D) Log.i(TAG, time+"");
-//							while ((System.currentTimeMillis() - pastMillTime) < time) {
-//
-//							}
+
 							try {
 								sleep(time);
 							} 
@@ -617,18 +584,13 @@ public class RobotMotion {
 								alive = false;
 							}
 						}
-					} 
 					catch (NullPointerException e) {
 					}
 				}
 				
-				//not alive
+				//not alive turn off all led
 				if (_robotManager != null) {
 					try {
-						long pastMillTime = System.currentTimeMillis();
-						while ((System.currentTimeMillis() - pastMillTime) < 500) {
-
-						}
 						if (at == 0) {
 							_robotManager.setHornLedColors(s_ccs[0], s_ccs[0]);
 						} else if (at == 2) {
@@ -644,8 +606,7 @@ public class RobotMotion {
 			}//end of run()
 		};
 		
-		//test
-		//ledDimThreads[at].start();
+		ledDimThreads[at].start();
 	}
 
 

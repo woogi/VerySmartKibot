@@ -1,8 +1,14 @@
 package com.kt.smartKibot;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 
 import android.content.Context;
+import android.content.res.AssetManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.util.Log;
 
 public class StateWandering implements IRobotState {
 
@@ -33,20 +39,25 @@ public class StateWandering implements IRobotState {
 		}
 
 		//FaceDetector.getInstance().start();
+		setTarget(ctx, 2, "target2.jpg");
+		setTarget(ctx, 3, "target3.jpg");
+		
+		FaceDetector.getInstance(ctx).start();
 		isEnd = false;
 	}
 
 	@Override
 	public void doAction(Context ctx) {
 
-		if (cause != null && cause.getType() == RobotEvent.EVT_NOISE_DETECTION) {
-			try {
-				Thread.sleep(200);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			RobotSpeech.getInstance(ctx).speak("무슨.소리지?", 1.0f, 1.0f);
-		}
+			RobotSpeech.getInstance(ctx).speak("아이쿠 시끄러워", 1.0f, 1.0f);
+//		if (cause != null && cause.getType() == RobotEvent.EVT_NOISE_DETECTION) {
+//			try {
+//				Thread.sleep(200);
+//			} catch (Exception e) {
+//				e.printStackTrace();
+//			}
+//			RobotSpeech.getInstance(ctx).speak("아이쿠 시끄러워", 1.0f, 1.0f);
+//		}
 
 		try {
 			int cnt=0;
@@ -57,7 +68,7 @@ public class StateWandering implements IRobotState {
 				int rand = (int) (Math.random() * 70l);
 				int lastDirection=-1;
 				if (rand == 1 && (mode==MODE_ACTIVE))
-					RobotSpeech.getInstance(ctx).speak("고!", 1.0f, 1.3f);
+					RobotSpeech.getInstance(ctx).speak("어디있니?", 1.0f, 1.3f);
 				
 				if(++cnt==10) {
 					rand = (int) (Math.random() * 5l);
@@ -114,6 +125,7 @@ public class StateWandering implements IRobotState {
 	public void cleanUp(Context ctx) {
 		//FaceDetector.getInstance().stop();
 		// RobotMotion.getInstance(ctx).stopFreeMove();
+		FaceDetector.getInstance(ctx).stop();
 		RobotMotion.getInstance(ctx).stopAll();
 		RobotMotion.getInstance(ctx).offAllLed();
 		RobotMotion.getInstance(ctx).setLogoLEDDimming(0);
@@ -125,4 +137,21 @@ public class StateWandering implements IRobotState {
 		isEnd = true;
 	}
 
+    private Bitmap getBitmapFromAsset(Context context, String strName) {
+	AssetManager assetManager = context.getAssets();
+	try {
+	    InputStream is = assetManager.open("targets/" + strName);
+	    return BitmapFactory.decodeStream(is);
+	} catch (IOException e) {
+	    Log.e(TAG, "bitmap target null");
+	    return null;
+	}
+    }
+
+    private void setTarget(Context ctx, int id, String assetName) {
+	Bitmap target = getBitmapFromAsset(ctx, assetName);
+	if (target != null) {
+	    FaceDetector.getInstance(ctx).setTarget(id, target);
+	}
+    }
 }

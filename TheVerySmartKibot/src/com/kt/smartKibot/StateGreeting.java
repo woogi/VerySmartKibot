@@ -11,6 +11,8 @@ public class StateGreeting implements IRobotState {
 	public static final int CAUSE_GOOD_MORNING=2;
 	public static final int CAUSE_GOOD_LUNCH=3;
 	public static final int CAUSE_GOOD_AFTERNOON=4;
+	public static final int CAUSE_USER_COMMING=6;
+	public static final int CAUSE_USER_GOAWAY=7;
 	
 	int cause=CAUSE_HELLO;
 
@@ -66,6 +68,16 @@ public class StateGreeting implements IRobotState {
 					
 					if(cause==CAUSE_GOOD_AFTERNOON){
 						RobotSpeech.getInstance(ctx).speak("식사 맛있게 하셨어요?");
+					}
+					
+					if(cause==CAUSE_USER_COMMING){
+						
+						RobotSpeech.getInstance(ctx).speak("어서 오세요!");
+					}
+					
+					if(cause==CAUSE_USER_GOAWAY){
+						
+						RobotSpeech.getInstance(ctx).speak("어디 가세요?");
 					}
 					
 					/*

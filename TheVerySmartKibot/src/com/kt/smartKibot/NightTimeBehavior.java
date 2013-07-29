@@ -13,9 +13,14 @@ public class NightTimeBehavior extends RobotBehavior {
 
 	private static final String TAG = "NightTimeBehavior";
 	private volatile boolean isEnd = false;
+	private volatile boolean forcely=false;
 	
-	public NightTimeBehavior(ArrayList<RobotLog> logHistory) {
+	public NightTimeBehavior(ArrayList<RobotLog> logHistory,boolean forcely) {
 		super(logHistory);
+	}
+	
+	public void setMode(boolean isForcely){
+		forcely=isForcely;
 	}
 	
 	@Override
@@ -25,7 +30,13 @@ public class NightTimeBehavior extends RobotBehavior {
 		isEnd=false;
 		
 		RobotActivity.setModeIndicatorColor(Color.GRAY,"야간");
-		changeState(new StateSleeping());
+		
+		if(forcely==true)
+		{
+			changeState(new StateSleeping(StateSleeping.CAUSE_ORDER));
+		}else{
+			changeState(new StateSleeping());
+		}
 		RobotTimer.getInstance().start();
 	
 	}
@@ -60,8 +71,8 @@ public class NightTimeBehavior extends RobotBehavior {
 		
 		case RobotEvent.EVT_TIMER:
 		{
-			if (StateEvasion.class.isInstance(getCurrentState())) {
-				if (evt.getParam1() == 1) {
+			if (StateEvasion.class.isInstance(getCurrentState())&& !RobotSpeech.getInstance(ctx).isSpeaking()) {
+				if (evt.getParam1()>1) {
 					changeState(new StateSleeping());
 					return;
 				}

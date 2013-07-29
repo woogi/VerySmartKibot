@@ -25,6 +25,9 @@ public class RobotEvent {
 	public static final int EVT_TOUCH_SCREEN=8;
 	public static final int EVT_LONG_PRESS_SCREEN=9;
 	public static final int EVT_SWIPE_SCREEN=10;
+	public static final int EVT_BT_MOTION_DETECTION=11;
+	public static final int EVT_BT_SIGNAL_DETECTED=13;
+	public static final int EVT_ROBOT_CHATTING_ASK=14;
 
 	
 	

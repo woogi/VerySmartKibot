@@ -10,7 +10,7 @@ public class NoiseCheckThread extends Thread {
 	AudioRecord audioRecord=null;
 	OnNoiseListener noiseListener=null;
 	private volatile boolean isRecording = false;
-	int threshold=500;
+	int threshold=1000;
 	int frequency = 11025;
 	int channelConfiguration = AudioFormat.CHANNEL_IN_MONO;
 	int audioEncoding = AudioFormat.ENCODING_PCM_16BIT;

@@ -89,7 +89,16 @@ public class StateScheduleBriefing implements IRobotState {
 			
 				if(cnt==0) RobotMotion.getInstance(ctx).goForward(1,3);
 					
-				if(cnt==10) RobotSpeech.getInstance(ctx).speak(msg);
+				if(cnt==10){
+					
+					User curUser=LogIn.getInstance().whosLogIn();
+					if(curUser==null){
+					RobotSpeech.getInstance(ctx).speak("키봇이 일정을 말씀드릴수 없네요");
+					}else{
+					RobotSpeech.getInstance(ctx).speak(""+curUser.name+"님. "+msg);
+					}
+				}
+				
 				if(cnt>40 && RobotSpeech.getInstance(ctx).isSpeaking()==false && moveBack==false) {
 					RobotMotion.getInstance(ctx).goBack(1,3);
 					moveBack=true;
@@ -274,7 +283,7 @@ class Schedule{
 					managedCursor.moveToNext() ;
 				}
 				
-				msg="소장님. 일정을 알려 드릴께요 ";
+				msg="일정을 알려 드릴께요 ";
 				
 				msg+=thisMonth+"월"+ thisDate+"일 오늘 ";
 				
@@ -314,7 +323,7 @@ class Schedule{
 			}
 			else{
 				//schedule is empty
-				msg="소장님. 일정을 알려 드릴께요 ";
+				msg="일정을 알려 드릴께요 ";
 				msg+=thisMonth+"월"+ thisDate+"일 오늘 ";
 				msg+=""+fromHour +"시 부터 "+ toHour+"시 까지는 ";
 				msg+="일정이 없습니다.";
@@ -437,7 +446,7 @@ class Schedule{
 					managedCursor.moveToNext() ;
 				}
 				
-				msg="소장님. 일정을 알려 드릴께요 ";
+				msg="일정을 알려 드릴께요 ";
 				
 				msg+=thisMonth+"월"+ thisDate+"일 오늘 ";
 				msg+="총 "+managedCursor.getCount()+" 건의 일정이 있습니다.";
@@ -455,7 +464,7 @@ class Schedule{
 			}
 			else{
 				//schedule is empty
-				msg="소장님. 일정을 알려 드릴께요 ";
+				msg="일정을 알려 드릴께요 ";
 				msg+=thisMonth+"월"+ thisDate+"일 오늘 ";
 				msg+="일정이 없습니다.";
 			}

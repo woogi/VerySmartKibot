@@ -3,6 +3,7 @@ package com.kt.smartKibot;
 import java.util.ArrayList;
 
 import android.content.Context;
+import android.os.Handler;
 import android.util.Log;
 
 
@@ -28,6 +29,7 @@ public class RobotBrain implements IRobotEvtHandler{
 	private RobotBehavior activeBehavior;
 	private RobotBehavior calmBehavior;
 	private RobotBehavior nightBehavior;
+	private Handler activityHandler=null;
 	
 	
 	private static final boolean _DEBUG=true;
@@ -69,10 +71,13 @@ public class RobotBrain implements IRobotEvtHandler{
 		
 		getCurrentBehavior().onStop(ctx);
 		
+		RobotChatting.getInstance(ctx).stop();
+//		BTMotionDetector.getInstance(ctx).stop();
 	}
 	
-	public RobotBrain(Context ctx) {
+	public RobotBrain(Context ctx,Handler handler) {
 		this.ctx = ctx;
+		this.activityHandler=handler;
 		
 		this.history_behavior=new ArrayList<RobotBehavior>(MAX_HISTORY_BEHAVIOR);
 		this.history_evt=new ArrayList<RobotEvent>(MAX_HISTORY_EVT);
@@ -82,16 +87,19 @@ public class RobotBrain implements IRobotEvtHandler{
 		testBehavior=new TestBehavior();
 		activeBehavior=new ActiveBehavior(history_log);
 		calmBehavior=new CalmBehavior(history_log);
-		nightBehavior=new NightTimeBehavior(history_log);
+		nightBehavior=new NightTimeBehavior(history_log,true);
 		
 		//timer handler 등록
 		RobotTimer.getInstance().installHandler(this);
 		
 		//noise detector handler 등록
-		NoiseDetector.getInstance().installHandler(this);
+		NoiseDetector.getInstance(ctx).installHandler(this);
+		BTMotionDetector.getInstance(ctx).installHandler(this);
+		RobotChatting.getInstance(ctx).installHandler(this);
+		RobotChatting.getInstance(ctx).start();
 		
 		//face detector handler
-    	FaceDetector.getInstance().installHandler(this);
+    	FaceDetector.getInstance(ctx).installHandler(this);
 
 		//body touch event handler 등록 
 		TouchDetector.getInstance().installHandler(this);
@@ -101,6 +109,20 @@ public class RobotBrain implements IRobotEvtHandler{
 		batteryChecker=new BatteryChecker(ctx);
 		batteryChecker.installHandler(this);
 		batteryChecker.start();
+		
+		
+		//test
+		User woogi=new User("이상욱","Woogic");
+		woogi.id=3;
+		User nicolas=new User("니콜라","Nicolas");
+		nicolas.id=2;
+		
+		LogIn.getInstance().addUser(woogi);
+		LogIn.getInstance().addUser(nicolas);
+		
+//		BTMotionDetector.getInstance(ctx).setTargetDevName("Woogic");
+//		BTMotionDetector.getInstance(ctx).start();
+		
 				
 		changeBehavior(dayTimeBehavior);
 	}
@@ -130,30 +152,65 @@ public class RobotBrain implements IRobotEvtHandler{
 		history_log.add(logData);
 		
 		
+		if(evt.getType()==RobotEvent.EVT_TIMER)
+		{
+			activityHandler.sendEmptyMessage(RobotActivity.UPDATE_LOGIN_UI);
+		}
+		
+		
+		
+		
+		if(evt.getType()==RobotEvent.EVT_ROBOT_CHATTING_ASK)
+		{
+			Log.d(TAG,"EVT_ROBOT_CHATTING_ASK param1:"+evt.getParam1()+" ext:"+evt.getExtParam());
+		
+			
+			
+			String whatSay=evt.getExtParam();
+			
+			if(evt.getParam1()==1 && whatSay!=null)
+			{
+			
+				if(whatSay.equals("시끄러")||whatSay.equals("씨끄러")  
+					||whatSay.indexOf("조용히")!=-1
+					||whatSay.indexOf("조용이")!=-1
+					||whatSay.equals("쉿"))
+				{
+					if (DayTimeBehavior.class.isInstance(behavior) ){
+						changeBehavior(nightBehavior);
+						return;
+					}
+					
+				}
+				
+			}
+		}
+		
 		if(evt.getType()==RobotEvent.EVT_TIMER_HOURLY)
 		{
 			if( (evt.getParam1() <7 || evt.getParam1()>=19 ) && !NightTimeBehavior.class.isInstance(behavior) ) 
 			{
 				//forecely change to NightTime behavior
-				changeBehavior(nightBehavior);
+				//test
+			//	changeBehavior(nightBehavior);
 				
 			}
 		}
 		
 		if(evt.getType()==RobotEvent.EVT_LONG_PRESS_SCREEN){
 			
+//			if (DayTimeBehavior.class.isInstance(behavior) ){
+//				changeBehavior(calmBehavior);
+//				return;
+//			}
+//			
+//			if (CalmBehavior.class.isInstance(behavior) ){
+//				changeBehavior(activeBehavior);
+//				return;
+//			}
+			
+			
 			if (DayTimeBehavior.class.isInstance(behavior) ){
-				changeBehavior(calmBehavior);
-				return;
-			}
-			
-			if (CalmBehavior.class.isInstance(behavior) ){
-				changeBehavior(activeBehavior);
-				return;
-			}
-			
-			
-			if (ActiveBehavior.class.isInstance(behavior) ){
 				changeBehavior(nightBehavior);
 				return;
 			}

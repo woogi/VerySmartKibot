@@ -10,12 +10,26 @@ public class StateAttraction implements IRobotState {
 	private static final String TAG="StateAttraction";
 	private volatile boolean isEnd=false;
 	private WeatherInfo wInfo=null;
+	private User detectedUser;
+	
+	public StateAttraction(User user){
+		detectedUser=user;
+	}
+	
+	public StateAttraction(){
+		detectedUser=null;
+	}
 	
 	@Override
 	public void onStart(Context ctx) {
 		isEnd=false;
 		if(_DEBUG) {
+			if(detectedUser!=null){
+				RobotFace.getInstance(ctx).change(RobotFace.MODE_FUN,TAG+ " ID:"+detectedUser.id);
+			}
+			else{
 				RobotFace.getInstance(ctx).change(RobotFace.MODE_FUN,TAG);
+			}
 		}
 		else{
 				RobotFace.getInstance(ctx).change(RobotFace.MODE_FUN);
@@ -45,17 +59,32 @@ public class StateAttraction implements IRobotState {
 						RobotMotion.getInstance(ctx).setLogoLEDDimming(0);
 					}
 					
-					if(cnt==20) {
+					if(cnt==20){
+						RobotSpeech.getInstance(ctx).speak("찾았다!", 1.1f, 1.0f);
+					
+					}
+					
+					if(cnt==30){
+					
+						if(detectedUser!=null){
+						RobotSpeech.getInstance(ctx).speak(""+detectedUser.name+"님 거기 있었네", 1.1f, 1.0f);
+						}else
+						{
+						RobotSpeech.getInstance(ctx).speak("거기서 뭐하세요?", 1.1f, 1.0f);
+						}
+					}
+					
+					if(cnt==50){
 						RobotMotion.getInstance(ctx).setLogoLEDDimming(2);
-						int rand=(int)(Math.random()*3l);
+						int rand=(int)(Math.random()*6l);
 						
 						switch(rand){
-							case 0: RobotSpeech.getInstance(ctx).speak("하이", 1.1f, 1.0f);
+							case 0: RobotSpeech.getInstance(ctx).speak("심심해요 놀아주세요", 1.1f, 1.0f);
 							break;
 							case 1:
 							{
 								int _hour=(hour==12)? 12:hour%12;
-								RobotSpeech.getInstance(ctx).speak("현재 시간은 "+_hour+"시 "+minute+"분 이에요" , 1.1f, 1.0f);
+								RobotSpeech.getInstance(ctx).speak("지금 시간은"+_hour+"시 "+minute+"분 이에요" , 1.1f, 1.0f);
 							}
 							break;
 							
@@ -98,15 +127,39 @@ public class StateAttraction implements IRobotState {
 								 RobotSpeech.getInstance(ctx).speak(msg, 1.1f, 1.0f);
 							}// end of case #2
 							break;
+							
+							case 3:
+							{
+								RobotSpeech.getInstance(ctx).speak("키봇은 머리를 쓰다듬으면 좋아요" , 1.1f, 1.0f);
+							}
+							break;
+							
+							case 4:
+							{
+								RobotSpeech.getInstance(ctx).speak("키봇은 다리를 만지면 좋아요" , 1.1f, 1.0f);
+							}
+							break;
+							
+							case 5:
+							{
+								RobotSpeech.getInstance(ctx).speak("키봇 머리에 파란불이 들어오면 대화 할수 있어요" , 1.1f, 1.0f);
+							}
+							break;
+							
+							case 6:
+							{
+								RobotSpeech.getInstance(ctx).speak("키봇 머리에 초록불이 들어오면 키봇이 당신을 찾고 있는중이에요 얼굴을 보여주세요" , 1.1f, 1.0f);
+							}
+							break;
 									
 						}//end of switch random
 					}
 					
-					if(cnt==30) {
+					if(cnt==60) {
 						RobotMotion.getInstance(ctx).setLogoLEDDimming(0);
 					}
 						
-					if(cnt==40){ 
+					if(cnt==70){ 
 						RobotMotion.getInstance(ctx).setLogoLEDDimming(2);
 						RobotMotion.getInstance(ctx).head(RobotMotion.HEAD_FRONT);
 					}
