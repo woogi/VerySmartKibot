@@ -922,7 +922,7 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 		
 		case CamConf.DRAW_SAMPLE:
 		    if (sampleView != null) {
-//			sampleView.setImageBitmap((Bitmap) msg.obj);
+			sampleView.setImageBitmap((Bitmap) msg.obj);
 		    }
 		    break;
 		case CamConf.DRAW_RECT:

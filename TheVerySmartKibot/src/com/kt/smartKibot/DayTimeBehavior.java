@@ -730,7 +730,6 @@ public class DayTimeBehavior extends RobotBehavior {
 	    String savedPicture = CamConf.SAVE_TARGETS_PATH + "target" + id + "pic.jpg";
 	    CamUtils.saveBitmapToFile(picture, savedPicture);
 	    fd.getFaceRect(savedPicture);
-	    Log.i("nicolas", " /target#" + id + "/ " + fd.detectedFaceNumber);
 	    if (fd.detectedFaceNumber > 0) {
 		Rect rect = fd.detectedFacePostion[0];
 		Bitmap face = CamUtils.cropFace(picture, rect);

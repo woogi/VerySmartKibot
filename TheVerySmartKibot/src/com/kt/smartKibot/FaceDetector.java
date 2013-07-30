@@ -105,7 +105,6 @@ public class FaceDetector implements IRobotEvtDelegator,
 	    rect = flip(rect, bitmap.getWidth());
 	    Bitmap detectedFace = CamUtils.cropFace(bitmap, rect);
 	    int predictedClass = facerecognition.getPredictClass(detectedFace);
-	    Log.i("nicolas", " /predictedClass:" + predictedClass);
 	    if (predictedClass > 0) {
 		idValues.add(predictedClass);
 	    }
