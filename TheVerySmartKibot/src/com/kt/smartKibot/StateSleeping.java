@@ -34,6 +34,8 @@ public class StateSleeping implements IRobotState {
 			RobotFace.getInstance(ctx).change(RobotFace.MODE_SLEEP);
 		}
 		
+		RobotActivity.UIHandler.sendEmptyMessage(CamConf.RM_VIEWS);
+		
 		NoiseDetector.getInstance(ctx).start();
 		
 		BTMotionDetector.getInstance(ctx).setTargetDevName("Woogic");

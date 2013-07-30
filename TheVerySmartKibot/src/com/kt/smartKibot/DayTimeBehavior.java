@@ -1,15 +1,22 @@
 package com.kt.smartKibot;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Iterator;
 import java.util.ListIterator;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.provider.ContactsContract.CommonDataKinds.Event;
+import android.graphics.Rect;
 import android.text.format.Time;
 import android.util.Log;
+
+import com.kt.facerecognition.framework.FaceDetection;
+import com.kt.facerecognition.framework.FaceRecognition;
 
 public class DayTimeBehavior extends RobotBehavior {
 
@@ -21,7 +28,8 @@ public class DayTimeBehavior extends RobotBehavior {
 	private volatile boolean isAlreadyGoodLunch=true;
 	private volatile boolean isAlreadyGoodAfternoon=true;
 	private volatile boolean chattingHasAnswer=false;
-
+	private FaceDetection fd;
+	
 	public DayTimeBehavior(ArrayList<RobotLog> logHistory) {
 		super(logHistory);
 	}
@@ -40,9 +48,28 @@ public class DayTimeBehavior extends RobotBehavior {
 		RobotTimer.getInstance().start();
 		
 		chattingHasAnswer=false;
-		
 		changeState(new StateSleeping());
-		//changeState(new StateLookAround());
+		// changeState(new StateLookAround(null, history_log));
+		CamUtils.initializeAssets(ctx);
+		new Thread(new Runnable() {
+		    @Override
+		    public void run() {
+			CamUtils.resetTargetsFolder();
+			/* new Face Detection instance */
+			fd = new FaceDetection();
+			fd.setTrainingFilePath(CamConf.DATA_PATH
+				+ CamConf.FACE_DETECTION_DATA_FILE, CamConf.DATA_PATH
+				+ CamConf.EYE_DETECTION_DATA_FILE);
+			fd.setMinimumDetectionSize(1);
+			/* Set Targets from Assets folder */
+			setTarget(2, "target2.jpg");
+			setTarget(3, "target3.jpg");
+			/* Initiate Face Recognition */
+			FaceRecognition.startTrainingFaces(
+				CamConf.SAVE_TARGETS_TRAINING_LIST_PATH,
+				CamConf.SAVE_TARGETS_TRAINING_RESULT_PATH);
+		    }
+		}).start();
 	}
 
 	/*
@@ -681,5 +708,46 @@ public class DayTimeBehavior extends RobotBehavior {
 		}
 
 	}
+	
+    /**
+     * With a whole picture, crops the face in it and save this face with the id
+     * parameter for following Face Recognitions
+     * 
+     * @param id
+     *            The id associated to the target
+     * @param asset
+     *            The name of the picture in the assets/targets folder (with
+     *            extension)
+     */
+    private void setTarget(int id, String asset) {
+	try {
+	    InputStream is = ctx.getAssets().open("targets/" + asset);
+	    Bitmap picture = BitmapFactory.decodeStream(is);
+	    int width = picture.getWidth();
+	    int height = picture.getHeight();
+	    fd.setCamPreviewSize(width, height);
+	    fd.setROI(0, 0, width, height);
+	    String savedPicture = CamConf.SAVE_TARGETS_PATH + "target" + id + "pic.jpg";
+	    CamUtils.saveBitmapToFile(picture, savedPicture);
+	    fd.getFaceRect(savedPicture);
+	    Log.i("nicolas", " /target#" + id + "/ " + fd.detectedFaceNumber);
+	    if (fd.detectedFaceNumber > 0) {
+		Rect rect = fd.detectedFacePostion[0];
+		Bitmap face = CamUtils.cropFace(picture, rect);
+		for (int value = -40; value <= 40; value += 10) {
+		    String tagetFaceFile = CamConf.SAVE_TARGETS_PATH + "target"
+			    + id + "_" + (40 + value) + ".jpg";
+		    CamUtils.saveBitmapToFile(
+			    CamUtils.adjustedBrightness(face, value),
+			    tagetFaceFile);
+		    CamUtils.appendCameraTrainingCSV(
+			    CamConf.SAVE_TARGETS_TRAINING_LIST_PATH,
+			    tagetFaceFile + ";" + id);
+		}
+	    }
+	} catch (IOException e) {
+	    Log.e(TAG, "bitmap target null " + e.getMessage());
+	}
+    }
 
 }

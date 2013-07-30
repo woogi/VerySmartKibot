@@ -14,6 +14,11 @@ import android.content.Context;
 import android.content.res.AssetManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
+import android.graphics.Matrix;
+import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.Bitmap.CompressFormat;
 import android.net.Uri;
@@ -28,19 +33,53 @@ public class CamUtils {
 
     public static FaceDetection initFaceDetection(int previewWidth,
 	    int previewHeight) {
-	String facedetectiondata = CamConf.DATA_PATH
-		+ CamConf.FACE_DETECTION_DATA_FILE;
-	String eyedetectiondata = CamConf.DATA_PATH
-		+ CamConf.EYE_DETECTION_DATA_FILE;
-	/* new Face Detection instance */
 	FaceDetection faceDetection = new FaceDetection();
-	faceDetection.setTrainingFilePath(facedetectiondata, eyedetectiondata);
+	faceDetection.setTrainingFilePath(CamConf.DATA_PATH
+		+ CamConf.FACE_DETECTION_DATA_FILE, CamConf.DATA_PATH
+		+ CamConf.EYE_DETECTION_DATA_FILE);
 	faceDetection.setCamPreviewSize(previewWidth, previewHeight);
 	faceDetection.setMinimumDetectionSize(1);
-	/* Region Of Interest (ROI) */
-	Rect roi = new Rect(0, 0, previewWidth, previewHeight);
-	faceDetection.setROI(roi.left, roi.top, roi.right, roi.bottom);
+	faceDetection.setROI(0, 0, previewWidth, previewHeight);
 	return faceDetection;
+    }
+
+    public static void resetTargetsFolder() {
+	CamUtils.recursiveDeletion(new File(CamConf.SAVE_TARGETS_PATH));
+	new File(CamConf.SAVE_TARGETS_PATH).mkdirs();
+    }
+
+    public static Bitmap adjustedBrightness(Bitmap src, float value) {
+	Bitmap alteredBitmap = Bitmap.createBitmap(src.getWidth(),
+		src.getHeight(), src.getConfig());
+	Canvas canvas = new Canvas(alteredBitmap);
+	Paint paint = new Paint();
+	ColorMatrix cm = new ColorMatrix();
+	float b = value;
+	cm.set(new float[] { 1, 0, 0, 0, b,
+	/*		   */0, 1, 0, 0, b,
+	/*		   */0, 0, 1, 0, b,
+	/*                 */0, 0, 0, 1, 0 });
+
+	paint.setColorFilter(new ColorMatrixColorFilter(cm));
+	Matrix matrix = new Matrix();
+	canvas.drawBitmap(src, matrix, paint);
+
+	return alteredBitmap;
+    }
+
+    public static void appendCameraTrainingCSV(String cvsFile, String line) {
+	File file = CamUtils.createFile(cvsFile);
+	if (file != null) {
+	    try {
+		BufferedWriter out = new BufferedWriter(new FileWriter(cvsFile,
+			true));
+		out.write(line);
+		out.newLine();
+		out.close();
+	    } catch (IOException e) {
+		Log.e(TAG, e.getMessage());
+	    }
+	}
     }
 
     public static void encodeYUV420SP(byte[] data, int[] argb, int width,
@@ -79,6 +118,40 @@ public class CamUtils {
 		Log.e(TAG, e.getMessage());
 	    }
 	}
+    }
+
+    public static Uri saveCroppedFace(Rect faceFrame, Bitmap bitmap) {
+	int x = faceFrame.left;
+	int y = faceFrame.top;
+	int w = faceFrame.width();
+	int h = faceFrame.height();
+	Bitmap croppedBitmap = Bitmap.createBitmap(bitmap, x, y, w, h);
+	Bitmap resizedBitmap = Bitmap.createScaledBitmap(croppedBitmap,
+		CamConf.FACE_IMAGE_SIZE_W, CamConf.FACE_IMAGE_SIZE_H, true);
+	String croppedFaceFilename = CamConf.DATA_PATH + "face.jpg";
+	Uri croppedFaceUri = saveBitmapToFileCache(resizedBitmap,
+		croppedFaceFilename);
+	return croppedFaceUri;
+    }
+
+    private static Uri saveBitmapToFileCache(Bitmap bitmap, String strFilePath) {
+	File fileCacheItem = new File(strFilePath);
+	Uri savedUri = Uri.fromFile(fileCacheItem);
+	OutputStream out = null;
+	try {
+	    fileCacheItem.createNewFile();
+	    out = new FileOutputStream(fileCacheItem);
+	    bitmap.compress(CompressFormat.JPEG, 100, out);
+	} catch (Exception e) {
+	    e.printStackTrace();
+	} finally {
+	    try {
+		out.close();
+	    } catch (IOException e) {
+		Log.e(TAG, e.getMessage());
+	    }
+	}
+	return savedUri;
     }
 
     public static Bitmap cropFace(Bitmap picture, Rect rect) {

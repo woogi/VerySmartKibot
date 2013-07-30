@@ -1,13 +1,8 @@
 package com.kt.smartKibot;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 
 import android.content.Context;
-import android.content.res.AssetManager;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.util.Log;
 
 public class StateLookAround implements IRobotState {
@@ -28,12 +23,10 @@ public class StateLookAround implements IRobotState {
 	}
 
 //	NoiseDetector.getInstance(ctx).start();
-	setTarget(ctx, 2, "target2.jpg");
-	setTarget(ctx, 3, "target3.jpg");
 	
 	FaceDetector.getInstance(ctx).start();
-		BTMotionDetector.getInstance(ctx).setTargetDevName("Woogic");
-		BTMotionDetector.getInstance(ctx).start();
+	BTMotionDetector.getInstance(ctx).setTargetDevName("Woogic");
+	BTMotionDetector.getInstance(ctx).start();
 	isEnd = false;
     }
 
@@ -121,24 +114,6 @@ public class StateLookAround implements IRobotState {
     @Override
     public void onChanged(Context ctx) {
 	isEnd = true;
-    }
-
-    private Bitmap getBitmapFromAsset(Context context, String strName) {
-	AssetManager assetManager = context.getAssets();
-	try {
-	    InputStream is = assetManager.open("targets/" + strName);
-	    return BitmapFactory.decodeStream(is);
-	} catch (IOException e) {
-	    Log.e(TAG, "bitmap target null");
-	    return null;
-	}
-    }
-
-    private void setTarget(Context ctx, int id, String assetName) {
-	Bitmap target = getBitmapFromAsset(ctx, assetName);
-	if (target != null) {
-	    FaceDetector.getInstance(ctx).setTarget(id, target);
-	}
     }
 
 }

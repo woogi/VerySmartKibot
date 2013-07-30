@@ -1,5 +1,7 @@
 package com.kt.smartKibot;
 
+import java.util.Vector;
+
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -10,12 +12,12 @@ import android.view.View;
 
 public class FaceRectangle extends View {
     private Paint paint;
-    private Rect[] array;
+    private Vector<Rect> vector;
     private double coefWidth, coefHeight;
 
     public FaceRectangle(Context context) {
 	super(context);
-	array = null;
+	vector = new Vector<Rect>();
 	paint = new Paint();
 	paint.setTextAlign(Align.CENTER);
 	paint.setColor(Color.RED);
@@ -25,37 +27,47 @@ public class FaceRectangle extends View {
 
     @Override
     protected void onDraw(Canvas canvas) {
-	if (array != null) {
-	    for (Rect r : array) {
-		if (r != null) {
-		    canvas.drawRect(getScaledRect(r), paint);
-		}
+	for (Rect r : vector) {
+	    if (r != null) {
+		canvas.drawRect(getScaledRect(r), paint);
 	    }
 	}
+	vector.clear();
     }
 
-    public void draw(Rect[] rect) {
-	array = rect;
+    /**
+     * Draw (and automatically invalidate the View) a Vector of rectangles
+     * 
+     * @param rect
+     *            Vector of Rectangles to be drawn
+     */
+    public void draw(Vector<Rect> rect) {
+	vector = rect;
 	invalidate();
     }
 
+    /**
+     * Set the size of the current preview to calculate the scaling coefficient
+     * 
+     * @param width
+     * @param height
+     */
     public void setSize(int width, int height) {
 	coefWidth = (double) width / (double) (CamConf.FRAME_WIDTH / 2);
 	coefHeight = (double) height / (double) (CamConf.FRAME_HEIGHT / 2);
     }
 
+    /**
+     * 
+     * @param rect
+     *            Rectangle to be scaled
+     * @return The same rectangle but scaled with the previously calculated
+     */
     private Rect getScaledRect(Rect rect) {
 	rect.left *= coefWidth;
 	rect.right *= coefWidth;
 	rect.top *= coefHeight;
 	rect.bottom *= coefHeight;
-	return flip(rect);
-    }
-
-    private Rect flip(Rect rect) {
-	int rectWidth = rect.width();
-	rect.left = getWidth() - rect.right;
-	rect.right = rect.left + rectWidth;
 	return rect;
     }
 }

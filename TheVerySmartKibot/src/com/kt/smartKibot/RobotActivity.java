@@ -2,6 +2,7 @@ package com.kt.smartKibot;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Vector;
 
 import android.app.Activity;
 import android.content.Context;
@@ -901,7 +902,6 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 			if (msg.obj != null) {
 			    sampleView.setLayoutParams((RelativeLayout.LayoutParams) msg.obj);
 			}
-			sampleView.setBackgroundColor(Color.BLACK);
 			mainLayout.addView(sampleView);
 		    }
 		    break;
@@ -922,12 +922,12 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 		
 		case CamConf.DRAW_SAMPLE:
 		    if (sampleView != null) {
-			sampleView.setImageBitmap((Bitmap) msg.obj);
+//			sampleView.setImageBitmap((Bitmap) msg.obj);
 		    }
 		    break;
 		case CamConf.DRAW_RECT:
 		    if (faceRectangle != null) {
-			faceRectangle.draw((Rect[]) msg.obj);
+			faceRectangle.draw((Vector<Rect>) msg.obj);
 		    }
 		    break;
 		}
