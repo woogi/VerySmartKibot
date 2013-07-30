@@ -1,6 +1,5 @@
 package com.kt.facerecognition.wrap;
 
-import android.util.Log;
 
 public class facedetectionJNI {
 
@@ -8,7 +7,6 @@ public class facedetectionJNI {
 	try {
 	    System.loadLibrary("facerecognition");
 	} catch (Exception exception) {
-	    Log.i("nicolas", "lib err load");
 	    throw new RuntimeException("Can not load facedetection library",
 		    exception);
 	}

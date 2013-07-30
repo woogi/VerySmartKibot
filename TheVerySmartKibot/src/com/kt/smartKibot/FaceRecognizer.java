@@ -1,18 +1,12 @@
 package com.kt.smartKibot;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.Vector;
 
 import android.content.Context;
 import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.graphics.Bitmap.CompressFormat;
 import android.graphics.Rect;
 import android.net.Uri;
-import android.os.Message;
 import android.util.Log;
 
 import com.kt.facerecognition.framework.FaceRecognition;
@@ -22,6 +16,8 @@ public class FaceRecognizer implements IRobotEvtDelegator,
 
     private static final String TAG = "FaceRecognizer";
     private static final int MAX_FAILURE = 200;
+
+    private Context ctx;
 
     private static CamSurface cameraSurface;
     private static FaceRecognizer instance;
@@ -35,9 +31,8 @@ public class FaceRecognizer implements IRobotEvtDelegator,
     private int tolerance;
 
     @Override
-    public void onFaceDetected(Bitmap bitmap, int detectedFaceNumber,
-	    Rect[] detectedFacePostion) {
-	handleDetectedFaces(bitmap, detectedFaceNumber, detectedFacePostion);
+    public void onFaceDetected(Bitmap bitmap, Vector<Rect> detectedPostions) {
+	handleDetectedFaces(bitmap, detectedPostions);
 	RobotEvent evt = new RobotEvent(RobotEvent.EVT_FACE_RECOGNITION);
 	handler.handle(null, evt);
 	cpt = 0;
@@ -46,10 +41,6 @@ public class FaceRecognizer implements IRobotEvtDelegator,
     @Override
     public void onFaceLost() {
 	direction = CamConf.LOST;
-	Message msg = new Message();
-	msg.what = CamConf.DRAW_RECT;
-	msg.obj = null;
-	RobotActivity.UIHandler.sendMessage(msg);
 	cpt = ++cpt % MAX_FAILURE;
 	Log.i(TAG, "FAIL #" + cpt);
 	if (cpt == 0) {
@@ -76,7 +67,6 @@ public class FaceRecognizer implements IRobotEvtDelegator,
     @Override
     public void start() {
 	Log.i(TAG, "start");
-	Context ctx = RobotActivity.getContext();
 	cameraSurface = CamSurface.getInstance(ctx);
 	if (cameraSurface != null) {
 	    cameraSurface.setOnFaceDetectListener(this);
@@ -108,10 +98,11 @@ public class FaceRecognizer implements IRobotEvtDelegator,
 	}
     }
 
-    public static FaceRecognizer getInstance() {
+    public static FaceRecognizer getInstance(Context context) {
 	Log.i(TAG, "instance is " + instance);
 	if (instance == null) {
 	    instance = new FaceRecognizer();
+	    instance.ctx = context;
 	}
 	return instance;
     }
@@ -120,16 +111,24 @@ public class FaceRecognizer implements IRobotEvtDelegator,
 	return direction;
     }
 
-    private void handleDetectedFaces(Bitmap bitmap, int detectedFaceNumber,
-	    Rect[] detectedFacePostion) {
+    /**
+     * 
+     * @param bitmap
+     *            Whole bitmap from the Camera SurfaceHolder.Callback
+     * @param detectedPositions
+     *            Vector of Rectangles from the FaceDetection framework that
+     *            represents the detected faces positions in the bitmap
+     */
+    private void handleDetectedFaces(Bitmap bitmap,
+	    Vector<Rect> detectedPositions) {
 	Vector<DetectedFaceProperties> faces = new Vector<DetectedFaceProperties>();
 	DetectedFaceProperties bestFace = new DetectedFaceProperties();
-	for (int i = 0; i < detectedFaceNumber; i++) {
+	for (Rect rect : detectedPositions) {
 	    DetectedFaceProperties face = new DetectedFaceProperties();
-	    face.rect = detectedFacePostion[i];
+	    face.rect = rect;
 	    /* for front camera do horizontal flip frame rectangle */
 	    face.rect = flip(face.rect);
-	    face.imageUri = saveCroppedFace(face.rect, bitmap);
+	    face.imageUri = CamUtils.saveCroppedFace(face.rect, bitmap);
 	    if (face.imageUri != null) {
 		/* Returns cursor to browse DB if known, null if not */
 		Cursor cursorClass = isKnown(face.imageUri);
@@ -170,10 +169,6 @@ public class FaceRecognizer implements IRobotEvtDelegator,
 	    }
 	}
 	if (bestFace != null) {
-	    Message msg = new Message();
-	    msg.what = CamConf.DRAW_RECT;
-	    msg.obj = bestFace.rect;
-	    RobotActivity.UIHandler.sendMessage(msg);
 	    letsMove(bestFace.rect);
 	} else {
 	    direction = CamConf.LOST;
@@ -185,20 +180,6 @@ public class FaceRecognizer implements IRobotEvtDelegator,
 	rect.left = CamConf.FRAME_WIDTH / 2 - rect.right;
 	rect.right = rect.left + rectWidth;
 	return rect;
-    }
-
-    private Uri saveCroppedFace(Rect faceFrame, Bitmap bitmap) {
-	int x = faceFrame.left;
-	int y = faceFrame.top;
-	int w = faceFrame.width();
-	int h = faceFrame.height();
-	Bitmap croppedBitmap = Bitmap.createBitmap(bitmap, x, y, w, h);
-	Bitmap resizedBitmap = Bitmap.createScaledBitmap(croppedBitmap,
-		CamConf.FACE_IMAGE_SIZE_W, CamConf.FACE_IMAGE_SIZE_H, true);
-	String croppedFaceFilename = CamConf.DATA_PATH + "face.jpg";
-	Uri croppedFaceUri = saveBitmapToFileCache(resizedBitmap,
-		croppedFaceFilename);
-	return croppedFaceUri;
     }
 
     private Cursor isKnown(Uri croppedFaceUri) {
@@ -264,26 +245,6 @@ public class FaceRecognizer implements IRobotEvtDelegator,
 	} else {
 	    direction = CamConf.STOP;
 	}
-    }
-
-    private Uri saveBitmapToFileCache(Bitmap bitmap, String strFilePath) {
-	File fileCacheItem = new File(strFilePath);
-	Uri savedUri = Uri.fromFile(fileCacheItem);
-	OutputStream out = null;
-	try {
-	    fileCacheItem.createNewFile();
-	    out = new FileOutputStream(fileCacheItem);
-	    bitmap.compress(CompressFormat.JPEG, 100, out);
-	} catch (Exception e) {
-	    e.printStackTrace();
-	} finally {
-	    try {
-		out.close();
-	    } catch (IOException e) {
-		Log.e(TAG, e.getMessage());
-	    }
-	}
-	return savedUri;
     }
 
     private class DetectedFaceProperties {

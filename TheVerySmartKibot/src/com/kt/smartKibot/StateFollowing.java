@@ -19,7 +19,7 @@ public class StateFollowing implements IRobotState {
 	} else {
 	    RobotFace.getInstance(ctx).change(RobotFace.MODE_EXCITED);
 	}
-	FaceRecognizer.getInstance().start();
+	FaceRecognizer.getInstance(ctx).start();
 	RobotMotion.getInstance(ctx).stopAll();
 	angle = 0;
 	isEnd = false;
@@ -31,7 +31,7 @@ public class StateFollowing implements IRobotState {
 	RobotMotion.getInstance(ctx).setLogoLEDDimming(2);
 	try {
 	    while (!isEnd) {
-		switch (FaceRecognizer.getInstance().getDirection()) {
+		switch (FaceRecognizer.getInstance(ctx).getDirection()) {
 		case CamConf.STOP:
 		    Log.i(TAG, "STOP <following>");
 		    new Thread(new Runnable() {
@@ -128,7 +128,7 @@ public class StateFollowing implements IRobotState {
     @Override
     public void cleanUp(Context ctx) {
 	Log.i(TAG, "clean up");
-	FaceRecognizer.getInstance().stop();
+	FaceRecognizer.getInstance(ctx).stop();
 	RobotMotion.getInstance(ctx).setLogoLEDDimming(0);
 	RobotMotion.getInstance(ctx).stopAll();
 

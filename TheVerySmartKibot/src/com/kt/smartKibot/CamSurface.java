@@ -1,8 +1,8 @@
 package com.kt.smartKibot;
 
 import java.io.IOException;
+import java.util.Vector;
 
-import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.ImageFormat;
@@ -35,6 +35,7 @@ public class CamSurface extends SurfaceView implements SurfaceHolder.Callback,
     private byte[] data;
     private FaceDetection faceDetection;
     private OnFaceDetectListener faceListener;
+    private boolean lost;
     private int[] rgba;
     private boolean stopSample, stopSearch;
 
@@ -49,7 +50,7 @@ public class CamSurface extends SurfaceView implements SurfaceHolder.Callback,
 	stopSearch = true;
 	/* UI */
 	RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
-		360, 270);
+		200, 150);
 	params.topMargin = 10;
 	params.rightMargin = 10;
 	params.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, RelativeLayout.TRUE);
@@ -58,12 +59,12 @@ public class CamSurface extends SurfaceView implements SurfaceHolder.Callback,
 	msg.what = CamConf.ADD_CAM;
 	msg.obj = this;
 	RobotActivity.UIHandler.sendMessage(msg);
+	lost = true;
     }
 
     /* Interface listener */
     public interface OnFaceDetectListener {
-	public void onFaceDetected(Bitmap bitmap, int detectedFaceNumber,
-		Rect[] detectedFacePostion);
+	public void onFaceDetected(Bitmap bitmap, Vector<Rect> detectedPostions);
 
 	public void onFaceLost();
     }
@@ -120,13 +121,14 @@ public class CamSurface extends SurfaceView implements SurfaceHolder.Callback,
     public void surfaceCreated(SurfaceHolder holder) {
 	Log.i(TAG, "surfaceCreated");
 	try {
-	    // This case can happen if the camera is open and closed too
-	    // frequently.
+	    /*
+	     * This case can happen if the camera is open and closed too
+	     * frequently.
+	     */
 	    camera = Camera.open();
 	} catch (Exception e) {
 	    Toast.makeText(ctx, e.getMessage(), Toast.LENGTH_LONG).show();
-	    Log.e(TAG, e.getMessage());
-	    ((Activity) ctx).finish();
+	    Log.e(TAG, "surfaceCreated/ " + e.getMessage());
 	    return;
 	}
 
@@ -134,10 +136,8 @@ public class CamSurface extends SurfaceView implements SurfaceHolder.Callback,
 	    camera.setPreviewCallbackWithBuffer(this);
 	    Parameters params = camera.getParameters();
 	    params.setPreviewSize(CamConf.FRAME_WIDTH, CamConf.FRAME_HEIGHT);
-	    if (params.getSupportedFocusModes().contains(
-		    Camera.Parameters.FOCUS_MODE_INFINITY)) {
-		params.setFocusMode(Camera.Parameters.FOCUS_MODE_INFINITY);
-	    }
+	    params.setFocusMode(Camera.Parameters.FOCUS_MODE_INFINITY);
+	    params.setWhiteBalance(Camera.Parameters.WHITE_BALANCE_AUTO);
 	    camera.setParameters(params);
 	    allocateBuffer();
 	    setPreviewDisplay();
@@ -234,13 +234,13 @@ public class CamSurface extends SurfaceView implements SurfaceHolder.Callback,
 	    bitmap.recycle();
 	    bitmap = null;
 	}
-	initFaceDetection(width, height);
 	try {
 	    Log.i(TAG, "start preview");
 	    camera.startPreview();
 	} catch (RuntimeException e) {
 	    Log.e(TAG, "Starting camera preview failed");
 	}
+	faceDetection = CamUtils.initFaceDetection(width, height);
     }
 
     private void stopPreview() {
@@ -281,34 +281,27 @@ public class CamSurface extends SurfaceView implements SurfaceHolder.Callback,
 	    if (!stopSearch) {
 		Log.i(TAG, "processFrame --> search");
 		faceDetection.getFaceRect(data);
+		Vector<Rect> positions = new Vector<Rect>();
 		if (faceDetection.detectedFaceNumber > 0) {
+		    for (int i = 0; i < faceDetection.detectedFaceNumber; i++) {
+			positions.add(faceDetection.detectedFacePostion[i]);
+		    }
+		    lost = false;
 		    Log.i(TAG, "processFrame --> face detected");
 		    if (faceListener != null) {
-			faceListener.onFaceDetected(fullBitmap,
-				faceDetection.detectedFaceNumber,
-				faceDetection.detectedFacePostion);
+			faceListener.onFaceDetected(fullBitmap, positions);
 		    }
-		} else {
+		} else if (!lost) {
+		    lost = true;
 		    faceListener.onFaceLost();
 		}
+		Message msg = new Message();
+		msg.what = CamConf.DRAW_RECT;
+		msg.obj = positions;
+		RobotActivity.UIHandler.sendMessage(msg);
 	    }
 	    return fullBitmap;
 	}
-    }
-
-    private void initFaceDetection(int previewWidth, int previewHeight) {
-	String facedetectiondata = CamConf.DATA_PATH
-		+ CamConf.FACE_DETECTION_DATA_FILE;
-	String eyedetectiondata = CamConf.DATA_PATH
-		+ CamConf.EYE_DETECTION_DATA_FILE;
-	/* new Face Detection instance */
-	faceDetection = new FaceDetection();
-	faceDetection.setTrainingFilePath(facedetectiondata, eyedetectiondata);
-	faceDetection.setCamPreviewSize(previewWidth, previewHeight);
-	faceDetection.setMinimumDetectionSize(1);
-	/* Region Of Interest (ROI) */
-	Rect roi = new Rect(0, 0, previewWidth, previewHeight);
-	faceDetection.setROI(roi.left, roi.top, roi.right, roi.bottom);
     }
 
     private Bitmap getBitmapFromData(byte[] data) {

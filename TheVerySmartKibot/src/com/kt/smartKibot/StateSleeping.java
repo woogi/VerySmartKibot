@@ -16,7 +16,7 @@ public class StateSleeping implements IRobotState {
 		else{
 			RobotFace.getInstance(ctx).change(RobotFace.MODE_SLEEP);
 		}
-		
+		RobotActivity.UIHandler.sendEmptyMessage(CamConf.RM_VIEWS);
 		NoiseDetector.getInstance().start();
 		isEnd=false;
 	}

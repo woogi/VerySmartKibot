@@ -1,6 +1,7 @@
 package com.kt.smartKibot;
 
 import java.io.File;
+import java.util.Vector;
 
 import android.app.Activity;
 import android.content.Context;
@@ -412,6 +413,7 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 		switch (msg.what) {
 		case CamConf.RM_VIEWS:
 		    if (msg.obj != null) {
+			((CamSurface) msg.obj).stopSearch();
 			mainLayout.removeView((CamSurface) msg.obj);
 			if (faceRectangle != null) {
 			    mainLayout.removeView(faceRectangle);
@@ -442,7 +444,9 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 		    if (faceRectangle == null) {
 			faceRectangle = new FaceRectangle(ctx);
 			if (msg.obj != null) {
-			    faceRectangle.setLayoutParams((RelativeLayout.LayoutParams) msg.obj);
+			    RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) msg.obj;
+			    faceRectangle.setLayoutParams(params);
+			    faceRectangle.setSize(params.width, params.height);
 			}
 			mainLayout.addView(faceRectangle);
 		    }
@@ -454,17 +458,13 @@ public class RobotActivity extends Activity implements OnUtteranceCompletedListe
 		    break;
 		case CamConf.DRAW_RECT:
 		    if (faceRectangle != null) {
-			faceRectangle.draw((Rect) msg.obj);
+			faceRectangle.draw((Vector<Rect>) msg.obj);
 		    }
 		    break;
 		}
 	    };
 	};
 	    
-	public static Context getContext() {
-		return ctx;
-	}
-	
 	 public static void writeLog(String text){
 	    logView.append(text + "\n");
 	    ((ScrollView) logView.getParent()).fullScroll(View.FOCUS_DOWN);
